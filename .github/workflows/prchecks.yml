@@ -13,7 +13,7 @@ env:
 
 jobs:
   validations:
-    runs-on: [ubuntu-latest]
+    runs-on: [ ubuntu-latest ]
     name: Validations
     steps:
       - uses: actions/checkout@v3

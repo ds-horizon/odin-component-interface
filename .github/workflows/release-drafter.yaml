@@ -14,14 +14,11 @@ on:
       - main
   # pull_request event is required only for auto-labeler
   pull_request:
-    types: [opened, reopened, synchronize]
-
-env:
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+    types: [ opened, reopened, synchronize ]
 
 jobs:
   update-release-draft:
-    runs-on: [ self-hosted, linux, X64, odin-component-interface ]
+    runs-on: [ ubuntu-latest ]
 
     outputs:
       tag-name: ${{ steps.release-drafter.outputs.tag_name }}
