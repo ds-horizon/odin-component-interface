@@ -1,0 +1,4 @@
+{
+  "replicationFactor": 1,
+  "namespace": "component-test"
+}

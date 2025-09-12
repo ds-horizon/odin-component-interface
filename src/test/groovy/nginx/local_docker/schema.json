@@ -1,0 +1,12 @@
+{
+  "type": "object",
+  "properties": {
+    "external_port": {
+      "type": "integer"
+    }
+  },
+  "required": [
+    "external_port"
+  ],
+  "additionalProperties": false
+}

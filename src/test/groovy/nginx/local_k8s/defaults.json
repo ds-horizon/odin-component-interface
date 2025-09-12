@@ -1,0 +1,5 @@
+{
+  "deploymentName": "{{ baseConfig.name }}-deployment",
+  "serviceName": "{{ baseConfig.name }}-service",
+  "replicas": 2
+}

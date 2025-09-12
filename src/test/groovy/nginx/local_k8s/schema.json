@@ -1,0 +1,24 @@
+{
+  "type": "object",
+  "properties": {
+    "external_port": {
+      "type": "integer"
+    },
+    "namespace": {
+      "type": "string"
+    },
+    "deploymentName": {
+      "type": "string"
+    },
+    "serviceName": {
+      "type": "string"
+    },
+    "replicas": {
+      "type": "integer"
+    }
+  },
+  "required": [
+    "external_port",
+    "namespace"
+  ]
+}

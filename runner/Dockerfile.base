@@ -1,0 +1,68 @@
+FROM amazoncorretto:17
+
+RUN yum -y update
+RUN yum groupinstall "Development Tools" -y
+RUN yum -y install wget unzip tar gzip openssl groff less xz openssl-devel libffi-devel bzip2-devel jq procps
+
+# install groovy 4.0.6
+RUN wget https://groovy.jfrog.io/artifactory/dist-release-local/groovy-zips/apache-groovy-binary-4.0.6.zip
+
+# install helm
+RUN curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+RUN chmod 700 ./get_helm.sh
+RUN bash get_helm.sh
+
+# todo remove it later, install python3 & terraform
+RUN wget https://releases.hashicorp.com/terraform/1.3.9/terraform_1.3.9_linux_amd64.zip
+RUN unzip terraform_1.3.9_linux_amd64.zip -d /usr/local/bin/
+RUN wget https://releases.hashicorp.com/packer/1.11.1/packer_1.11.1_linux_amd64.zip
+RUN unzip packer_1.11.1_linux_amd64.zip -d /usr/local/bin/
+RUN packer plugins install github.com/hashicorp/docker 1.0.11
+RUN packer plugins install github.com/hashicorp/amazon 1.3.2
+RUN wget https://www.python.org/ftp/python/3.9.13/Python-3.9.13.tgz
+RUN tar xvf Python-3.9.13.tgz
+RUN cd Python-3.9*/ && ./configure && make install
+RUN /usr/local/bin/python3.9 -m pip install --upgrade pip
+RUN /usr/local/bin/python3.9 -m pip install ansible==8.4.0
+RUN /usr/local/bin/python3.9 -m pip install cqlsh==6.0.1
+
+
+# install aws cli
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+RUN unzip awscliv2.zip
+RUN ./aws/install
+
+# install docker
+RUN amazon-linux-extras install docker
+
+
+# Set environment variables
+ENV CLOUD_SDK_VERSION=486.0.0
+ENV PATH=/google-cloud-sdk/bin:$PATH
+
+# Install the Google Cloud SDK
+RUN curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-$CLOUD_SDK_VERSION-linux-x86_64.tar.gz \
+    && tar -xzvf google-cloud-sdk-$CLOUD_SDK_VERSION-linux-x86_64.tar.gz \
+    && rm google-cloud-sdk-$CLOUD_SDK_VERSION-linux-x86_64.tar.gz \
+    && ./google-cloud-sdk/install.sh
+RUN gcloud components install gke-gcloud-auth-plugin
+
+# install kubectl
+RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+RUN install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+
+# install Node.js
+RUN curl -fsSL https://nodejs.org/dist/v16.20.2/node-v16.20.2-linux-x64.tar.xz | tar -xJf - -C /usr/local --strip-components=1
+
+# install envconsul
+ARG ARTIFACTORY_USERNAME
+ARG ARTIFACTORY_PASSWORD
+RUN curl --location -u "$ARTIFACTORY_USERNAME:$ARTIFACTORY_PASSWORD" -O "https://dreamsports.jfrog.io/artifactory/d11-generic-dev-local/envconsul/0.13.1/envconsul_linux_amd64/envconsul"
+RUN chmod +x envconsul
+RUN mv envconsul /usr/bin/envconsul
+
+# install yq
+RUN wget https://github.com/mikefarah/yq/releases/download/v4.34.2/yq_linux_amd64 -O /usr/bin/yq
+RUN chmod +x /usr/bin/yq
+
+RUN unzip apache-groovy-binary-4.0.6.zip
