@@ -1,4 +1,4 @@
-name: Publish Snapshot
+name: CI Checks
 on:
   pull_request:
     types:
@@ -7,21 +7,13 @@ on:
     branches:
       - main
 
-env:
-  ARTIFACT_NAME: odin-component-interface
-  JFROG_REPOSITORY: d11-repo/com/dream11/
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
-
 jobs:
-  push-snapshot-to-jfrog:
-    runs-on: [ self-hosted, linux, X64, odin-component-interface ]
+  ci-checks:
+    runs-on: [ubuntu-latest]
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-
-      - name: Login to Docker
-        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USER_NAME }} --password-stdin
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
@@ -38,33 +30,3 @@ jobs:
 
       - name: Build Jar
         run: mvn clean package --no-transfer-progress
-
-      - name: Setup jfrog
-        uses: jfrog/setup-jfrog-cli@v3
-
-      - name: Get version from pom.xml
-        id: get_version
-        run: |
-          PROJECT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-          echo "PROJECT_VERSION: ${PROJECT_VERSION}" 
-          if [[ ${PROJECT_VERSION} != *-SNAPSHOT ]]; then
-            echo "Error: version must be suffixed with '-SNAPSHOT'. Concrete versions can only be released from master branch"
-            exit 1
-          fi
-          echo "VERSION=$PROJECT_VERSION" >> $GITHUB_OUTPUT
-
-      - name: Publish snapshot to jfrog
-        run: |
-          PROJECT_VERSION=${{ steps.get_version.outputs.VERSION }}
-          jf rt upload --flat --url ${{ secrets.JFROG_URL }} --user ${{ secrets.JFROG_USERNAME }} --password ${{ secrets.JFROG_PASSWORD }} target/${ARTIFACT_NAME}-${PROJECT_VERSION}-jar-with-dependencies.jar ${JFROG_REPOSITORY}${ARTIFACT_NAME}/${PROJECT_VERSION}/
-
-      - name: Publish docker image to jfrog
-        env:
-          REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
-          REPOSITORY: d11-docker-artifacts/odin-component-interface
-          TAG: ${{ steps.get_version.outputs.VERSION }}
-          USERNAME: ${{ secrets.JFROG_USERNAME }}
-          PASSWORD: ${{ secrets.JFROG_PASSWORD }}
-          LOGIN_URL: ${{ secrets.JFROG_URL }}
-
-        run: .ci/scripts/publish-docker-image.sh
