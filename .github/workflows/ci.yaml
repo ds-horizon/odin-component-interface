@@ -27,11 +27,8 @@ jobs:
         with:
           maven-version: 3.8.2
 
-      - name: Compile Code
-        run: mvn clean compile --no-transfer-progress
-
       - name: Verify Build and Run Code Analysis
-        run: mvn verify --no-transfer-progress
+        run: mvn clean verify --no-transfer-progress
 
       - name: Upload CodeNarc Report
         if: always()
