@@ -6,5 +6,5 @@ mvn versions:set -DnextSnapshot=true
 bump_version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
 
 git add pom.xml
-git commit -m "chore: release version $release_version and bump version to $bump_version"
+git commit -m "chore: release version $release_version and bump version to $bump_version [skip ci]"
 git push origin HEAD:main
