@@ -9,7 +9,7 @@ on:
 
 jobs:
   ci-checks:
-    runs-on: [ ubuntu-latest ]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
@@ -21,12 +21,22 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
-          overwrite-settings: false
 
       - name: Set up Maven
         uses: stCarolas/setup-maven@v4.5
         with:
           maven-version: 3.8.2
 
-      - name: Build Jar
-        run: mvn clean package --no-transfer-progress
+      - name: Compile Code
+        run: mvn clean compile --no-transfer-progress
+
+      - name: Verify Build and Run Code Analysis
+        run: mvn verify --no-transfer-progress
+
+      - name: Upload CodeNarc Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: codenarc-report
+          path: target/CodeNarc-Report.html
+          retention-days: 7

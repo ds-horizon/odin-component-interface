@@ -1,4 +1,4 @@
-# This workflow publishes the module to Maven and is triggered when a Draft release is published.
+# This workflow builds and publishes artifacts when a GitHub release is published.
 
 name: Publish Release
 
@@ -8,21 +8,15 @@ on:
 
 env:
   ARTIFACT_NAME: odin-component-interface
-  JFROG_REPOSITORY: d11-repo/com/dream11/
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
 jobs:
-  publish-concrete-version:
-    runs-on: [ ubuntu-latest ]
+  publish-release:
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
         with:
-          token: ${{ secrets.COMMIT_ACCESS_TOKEN }}
           fetch-depth: 0
-
-      - name: Login to Docker
-        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USER_NAME }} --password-stdin
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
@@ -30,28 +24,24 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
-          overwrite-settings: false
 
       - name: Set up Maven
         uses: stCarolas/setup-maven@v4.5
         with:
           maven-version: 3.8.2
 
-      - name: Setup jfrog
-        uses: jfrog/setup-jfrog-cli@v3
-
       - name: Setup git config
         run: |
-          git config user.name "release-bot"
-          git config user.email "<>"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Get version from tag
         id: get_version
         run: |
           releaseVersion="${GITHUB_REF/refs\/tags\//}"
           releaseVersion="${releaseVersion//v/}"
-          echo "Publishing version : ${releaseVersion}" 
-          echo "VERSION=$releaseVersion" >> $GITHUB_OUTPUT 
+          echo "Publishing version : ${releaseVersion}"
+          echo "VERSION=$releaseVersion" >> $GITHUB_OUTPUT
 
       - name: Update version pom.xml
         run: mvn versions:set -DnewVersion=${{ steps.get_version.outputs.VERSION }}
@@ -59,21 +49,16 @@ jobs:
       - name: Build Jar
         run: mvn clean package --no-transfer-progress
 
-      - name: Publish to jfrog
-        run: |
-          PROJECT_VERSION=${{ steps.get_version.outputs.VERSION }}
-          jf rt upload --flat --url ${{ secrets.JFROG_URL }} --user ${{ secrets.JFROG_USERNAME }} --password ${{ secrets.JFROG_PASSWORD }} target/${ARTIFACT_NAME}-${PROJECT_VERSION}-jar-with-dependencies.jar ${JFROG_REPOSITORY}${ARTIFACT_NAME}/${PROJECT_VERSION}/
-
-      - name: Publish docker image to jfrog
+      - name: Upload JAR to Release
+        uses: actions/upload-release-asset@v1
         env:
-          REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
-          REPOSITORY: d11-docker-artifacts/odin-component-interface
-          TAG: ${{ steps.get_version.outputs.VERSION }}
-          USERNAME: ${{ secrets.JFROG_USERNAME }}
-          PASSWORD: ${{ secrets.JFROG_PASSWORD }}
-          LOGIN_URL: ${{ secrets.JFROG_URL }}
-
-        run: .ci/scripts/publish-docker-image.sh
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./target/${{ env.ARTIFACT_NAME }}-${{ steps.get_version.outputs.VERSION }}-jar-with-dependencies.jar
+          asset_name: ${{ env.ARTIFACT_NAME }}-${{ steps.get_version.outputs.VERSION }}.jar
+          asset_content_type: application/java-archive
 
       - name: Bump version
+        if: github.event.release.target_commitish == 'main'
         run: .ci/scripts/bump-version.sh
