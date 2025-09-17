@@ -4,9 +4,15 @@
 name: Test Release Flow
 
 on:
-  release:
-    types: [ released ]
-  workflow_dispatch:  # Allow manual trigger for testing
+  # Add push trigger to make it visible in Actions tab
+  push:
+    branches:
+      - feat/oss
+    paths:
+      - '.github/workflows/release-test.yml'
+
+  # Keep workflow_dispatch for manual testing
+  workflow_dispatch:
     inputs:
       tag_name:
         description: 'Tag name to simulate (e.g., v1.0.0)'
@@ -19,8 +25,6 @@ env:
 jobs:
   test-release:
     runs-on: ubuntu-latest
-    # Only run on feat/oss branch for safety
-    if: github.ref == 'refs/heads/feat/oss' || github.event_name == 'workflow_dispatch'
 
     steps:
       - uses: actions/checkout@v3
@@ -50,6 +54,8 @@ jobs:
           # For testing, use input or default
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             releaseVersion="${{ github.event.inputs.tag_name }}"
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            releaseVersion="v0.0.1"  # Default for push trigger
           else
             releaseVersion="${GITHUB_REF/refs\/tags\//}"
           fi
