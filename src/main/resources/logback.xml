@@ -1,0 +1,22 @@
+<configuration>
+    <property name="pattern.noDate" value="%highlight(%+5level) %green(%msg) %n"/>
+    <property name="pattern.date" value="%highlight(%+5level) %date %green(%msg) %n"/>
+
+    <appender name="STDOUT" class="ch.qos.logback.classic.sift.SiftingAppender">
+        <discriminator class="ch.qos.logback.classic.sift.MDCBasedDiscriminator">
+            <Key>logFormat</Key>
+            <DefaultValue>date</DefaultValue>
+        </discriminator>
+        <sift>
+            <appender name="CONSOLE-${logFormat}" class="ch.qos.logback.core.ConsoleAppender">
+                <encoder>
+                    <pattern>${pattern.${logFormat}}</pattern>
+                </encoder>
+            </appender>
+        </sift>
+    </appender>
+    <logger name="com.networknt.schema" level="info"/>
+    <root level="${LOG_LEVEL:-debug}">
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>
