@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import groovy.util.logging.Slf4j
 
 /**
- * It is to be inherited by Specs that will be enclosed withing flavour block in the DSL.
+ * It is to be inherited by Specs that will be enclosed within flavour block in the DSL.
  * For example deploy, discovery, healthcheck etc. blocks.
  * */
 @Slf4j

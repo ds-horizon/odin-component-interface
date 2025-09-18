@@ -41,12 +41,12 @@ class DslMetadata {
     private StateConfig stateConfig
 
     /**
-     * Default is 5, can be overriden by Odin by sending this value in metadata.
+     * Default is 5, can be overridden by Odin by sending this value in metadata.
      * */
     private int retryMaxAttempts = RETRY_MAX_ATTEMPTS
 
     /**
-     * Default is 5, can be overriden by Odin by sending this value in metadata.
+     * Default is 5, can be overridden by Odin by sending this value in metadata.
      * */
     private int healthCheckConnectionTimeout = HEALTHCHECK_CONNECTION_TIMEOUT
 

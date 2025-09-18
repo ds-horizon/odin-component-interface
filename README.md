@@ -153,7 +153,7 @@ All interpolation expressions are supported using [Jinja templating](https://pal
 ```
 
 ### Logging
-All the log messages you produce in the component must follow the log level format. If you do not provide any log level, OCI will treat them as debug logs and won't be shown to end user by default. 
+All the log messages you produce in the component must follow the log level format. If you do not provide any log level, OCI will treat them as debug logs and won't be shown to end user by default.
 The log levels are as follows:
 1. **`::error::`**
 2. **`::warn::`**
@@ -184,4 +184,3 @@ Both the above examples will log the same message: `This is an info message`.
 ---
 
 Feel free to contribute by submitting pull requests or opening issues in our repository!
-

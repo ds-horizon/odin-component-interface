@@ -24,4 +24,3 @@ class RedisLockClientConfig implements LockClientConfig {
         return new RedisLockClientConfig(key, clusterEndpoint);
     }
 }
-
