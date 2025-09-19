@@ -1,26 +1,30 @@
 package com.dream11.lock
 
+import com.fasterxml.jackson.annotation.JsonProperty
 
 class RedisLockClientConfig implements LockClientConfig {
-    private String key;
-    private String clusterEndpoint;
+    @JsonProperty("key")
+    String key
 
-    RedisLockClientConfig(String key, String clusterEndpoint) {
-        this.key = key;
-        this.clusterEndpoint = clusterEndpoint;
+    @JsonProperty("host")
+    String host
+
+    @JsonProperty("port")
+    Integer port = 6379
+
+    RedisLockClientConfig() {
+        // Default constructor for Jackson
     }
 
     String getKey() {
-        return key;
+        return key
     }
 
-    String getClusterEndpoint() {
-        return clusterEndpoint;
+    String getHost() {
+        return host
     }
 
-    static RedisLockClientConfig fromConfigMap(Map<String, Object> config) {
-        String key = (String) config.get("key");
-        String clusterEndpoint = (String) config.get("clusterEndpoint");
-        return new RedisLockClientConfig(key, clusterEndpoint);
+    Integer getPort() {
+        return port
     }
 }

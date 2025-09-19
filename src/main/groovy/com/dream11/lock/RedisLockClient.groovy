@@ -4,21 +4,22 @@ import groovy.util.logging.Slf4j
 import redis.clients.jedis.Jedis
 
 @Slf4j
-class RedisClient implements LockClient {
+class RedisLockClient implements LockClient {
     private Jedis redisClient
     RedisLockClientConfig redisLockClientConfig
     private final Object redisLock = new Object()
     private String LOCK_VALUE
 
-    RedisClient(RedisLockClientConfig lockConfig) {
-        this.redisLockClientConfig = lockConfig
+    RedisLockClient(LockClientConfig lockConfig) {
+        this.redisLockClientConfig = (RedisLockClientConfig) lockConfig
     }
 
     Jedis getOrCreateRedisClient() {
         if (redisClient == null) {
+            log.debug("Creating new Redis client for host: ${redisLockClientConfig.getHost()} and port: ${redisLockClientConfig.getPort()}")
             synchronized (redisLock) {
                 if (redisClient == null) {
-                    redisClient = new Jedis(redisLockClientConfig.getClusterEndpoint(), 6379)
+                    redisClient = new Jedis(redisLockClientConfig.getHost(), redisLockClientConfig.getPort())
                 }
             }
         }
