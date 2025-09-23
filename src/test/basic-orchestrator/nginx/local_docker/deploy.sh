@@ -17,7 +17,7 @@ cd ../../../../../ || exit 1
 
 # Build the project
 echo "Building project with Maven..."
-if ! mvn package; then
+if ! mvn clean package; then
     echo "Error: Maven build failed" >&2
     exit 1
 fi
