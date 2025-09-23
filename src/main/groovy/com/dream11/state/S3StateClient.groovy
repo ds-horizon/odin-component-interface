@@ -47,7 +47,6 @@ class S3StateClient implements StateClient {
 
     @Override
     String getState() {
-        // Parse and validate S3 URI using centralized utility
         S3Uri s3Uri = S3Utils.parseAndValidateS3Uri(stateConfig.getUri())
         String bucket = s3Uri.bucket().get()
         String key = s3Uri.key().get()
@@ -59,10 +58,10 @@ class S3StateClient implements StateClient {
             log.debug("Given S3 uri [${stateConfig.getUri()}] is a file")
 
             try {
-                // Check if object exists using HeadObject with Consumer pattern
+                // Check if object exists using HeadObject
                 s3Client.headObject(request -> request.bucket(bucket).key(key))
 
-                // Object exists, download it using Consumer pattern
+                // Object exists, download it
                 ResponseBytes<GetObjectResponse> response = s3Client.getObjectAsBytes(request ->
                         request.bucket(bucket).key(key)
                 )
@@ -76,12 +75,11 @@ class S3StateClient implements StateClient {
 
     @Override
     void putState(String workingDirectory) {
-        // Parse and validate S3 URI using centralized utility
         S3Uri s3Uri = S3Utils.parseAndValidateS3Uri(stateConfig.getUri())
         String bucket = s3Uri.bucket().get()
         String key = s3Uri.key().get()
 
-        // Check if the bucket exists; if not, create it using Consumer pattern
+        // Create bucket on the fly it it doesn't exist
         try {
             s3Client.headBucket(request -> request.bucket(bucket))
         } catch (NoSuchBucketException ignored) {
@@ -91,19 +89,18 @@ class S3StateClient implements StateClient {
         // Read the content from a local file in the working directory
         File localFile = new File(workingDirectory, "odin.state")
 
-        // Upload the state file to S3 using Consumer pattern
+        // Upload the state file to S3
         // ensures that the state file is either fully uploaded or not uploaded at all
         s3Client.putObject(request -> request.bucket(bucket).key(key), RequestBody.fromFile(localFile))
     }
 
     @Override
     void deleteState() {
-        // Parse and validate S3 URI using centralized utility
         S3Uri s3Uri = S3Utils.parseAndValidateS3Uri(stateConfig.getUri())
         String bucket = s3Uri.bucket().get()
         String key = s3Uri.key().get()
 
-        // Check if the bucket exists; if not, log error and return using Consumer pattern
+        // if the bucket exists, simply return since there is no need to delete
         try {
             s3Client.headBucket(request -> request.bucket(bucket))
         } catch (NoSuchBucketException ignored) {
@@ -111,7 +108,7 @@ class S3StateClient implements StateClient {
             return
         }
 
-        // Delete the state file from S3 using Consumer pattern
+        // Delete the state file from S3
         s3Client.deleteObject(request -> request.bucket(bucket).key(key))
     }
 }

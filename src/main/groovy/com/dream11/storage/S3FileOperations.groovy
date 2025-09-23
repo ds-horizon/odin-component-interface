@@ -52,7 +52,6 @@ class S3FileOperations implements FileOperations {
 
     @Override
     void download(FileDownloadSpec fileDownloadSpec, String workingDirectory) {
-        // Parse and validate S3 URI using centralized utility
         S3Uri s3Uri = S3Utils.parseAndValidateS3Uri(fileDownloadSpec.getUri())
         String bucket = s3Uri.bucket().get()
         String key = s3Uri.key().get()
@@ -69,17 +68,14 @@ class S3FileOperations implements FileOperations {
     private void downloadDirectory(String bucket, String key, String relativeDestination, String workingDirectory) {
         String tempDirPath = OdinUtil.joinPath(workingDirectory, "tmp")
 
-        // Build the download directory request using Groovy closure syntax
+        // Build the download directory request
         DownloadDirectoryRequest downloadDirectoryRequest = DownloadDirectoryRequest.builder()
                 .destination(Paths.get(tempDirPath))
                 .bucket(bucket)
                 .listObjectsV2RequestTransformer(request -> request.prefix(key))
                 .build()
 
-        // Execute the directory download
         DirectoryDownload directoryDownload = transferManager.downloadDirectory(downloadDirectoryRequest)
-
-        // Wait for completion
         CompletedDirectoryDownload completedDirectoryDownload = directoryDownload.completionFuture().join()
 
         // Check for failed transfers with detailed error information
@@ -105,19 +101,13 @@ class S3FileOperations implements FileOperations {
     private void downloadFile(String bucket, String key, String relativeDestination, String workingDirectory) {
         File downloadFile = new File(OdinUtil.joinPath(workingDirectory, relativeDestination == null ? key.split("/").last() : relativeDestination))
 
-        // Build the download file request using Groovy closure syntax
+        // Build the download file request
         DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
-                .getObjectRequest { req ->
-                    req.bucket(bucket)
-                            .key(key)
-                }
+                .getObjectRequest(req -> req.bucket(bucket).key(key))
                 .destination(downloadFile.toPath())
                 .build()
 
-        // Execute the file download
         FileDownload fileDownload = transferManager.downloadFile(downloadFileRequest)
-
-        // Wait for completion
         CompletedFileDownload completedFileDownload = fileDownload.completionFuture().join()
 
         log.debug("Downloaded file from S3: ${completedFileDownload.response().responseMetadata()}")
