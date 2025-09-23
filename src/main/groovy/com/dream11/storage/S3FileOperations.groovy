@@ -1,41 +1,100 @@
 package com.dream11.storage
 
-import com.amazonaws.services.s3.AmazonS3URI
-import com.amazonaws.services.s3.transfer.Download
-import com.amazonaws.services.s3.transfer.MultipleFileDownload
-import com.amazonaws.services.s3.transfer.TransferManager
-import com.amazonaws.services.s3.transfer.TransferManagerBuilder
 import com.dream11.OdinUtil
 import com.dream11.spec.FileDownloadSpec
+import com.dream11.state.S3Utils
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration
+import software.amazon.awssdk.core.retry.RetryMode
+import software.amazon.awssdk.services.s3.S3AsyncClient
+import software.amazon.awssdk.services.s3.S3Uri
+import software.amazon.awssdk.transfer.s3.S3TransferManager
+import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryDownload
+import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload
+import software.amazon.awssdk.transfer.s3.model.DirectoryDownload
+import software.amazon.awssdk.transfer.s3.model.DownloadDirectoryRequest
+import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest
+import software.amazon.awssdk.transfer.s3.model.FailedFileDownload
+import software.amazon.awssdk.transfer.s3.model.FileDownload
+
+import java.nio.file.Paths
 
 @Slf4j
 class S3FileOperations implements FileOperations {
 
-    TransferManager transferManager = TransferManagerBuilder.standard().build()
+    private final S3AsyncClient s3AsyncClient
+    private final S3TransferManager transferManager
+    private volatile boolean closed = false
+
+    S3FileOperations() {
+        // Configure retry strategy with standard mode (3 retries by default)
+        ClientOverrideConfiguration overrideConfig = ClientOverrideConfiguration.builder()
+                .retryStrategy(RetryMode.STANDARD)
+                .build()
+
+        // Initialize with S3 async client with retry configuration
+        // Even though we use blocking operations (.join()), Transfer Manager needs async client
+        this.s3AsyncClient = S3AsyncClient.builder()
+                .overrideConfiguration(overrideConfig)
+                .build()
+
+        this.transferManager = S3TransferManager.builder()
+                .s3Client(s3AsyncClient)
+                .build()
+
+        // Register shutdown hook to ensure resources are cleaned up
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            log.debug("Shutting down S3FileOperations resources")
+            this.close()
+        }))
+    }
 
     @Override
     void download(FileDownloadSpec fileDownloadSpec, String workingDirectory) {
-        AmazonS3URI s3Uri = new AmazonS3URI(fileDownloadSpec.getUri())
-        String bucket = s3Uri.getBucket()
-        String key = s3Uri.getKey()
+        // Parse and validate S3 URI using centralized utility
+        S3Uri s3Uri = S3Utils.parseAndValidateS3Uri(fileDownloadSpec.getUri())
+        String bucket = s3Uri.bucket().get()
+        String key = s3Uri.key().get()
 
-        if (key.endsWith("/")) {
+        if (S3Utils.isDirectory(s3Uri)) {
             log.debug("Given S3 uri [${fileDownloadSpec.getUri()}] is a directory")
             downloadDirectory(bucket, key, fileDownloadSpec.getRelativeDestination(), workingDirectory)
         } else {
             log.debug("Given S3 uri [${fileDownloadSpec.getUri()}] is a file")
             downloadFile(bucket, key, fileDownloadSpec.getRelativeDestination(), workingDirectory)
         }
-
-        transferManager.shutdownNow()
     }
 
     private void downloadDirectory(String bucket, String key, String relativeDestination, String workingDirectory) {
         String tempDirPath = OdinUtil.joinPath(workingDirectory, "tmp")
-        MultipleFileDownload s3Object = transferManager.downloadDirectory(bucket, key, new File(tempDirPath))
-        s3Object.waitForCompletion()
+
+        // Build the download directory request using Groovy closure syntax
+        DownloadDirectoryRequest downloadDirectoryRequest = DownloadDirectoryRequest.builder()
+                .destination(Paths.get(tempDirPath))
+                .bucket(bucket)
+                .listObjectsV2RequestTransformer(request -> request.prefix(key))
+                .build()
+
+        // Execute the directory download
+        DirectoryDownload directoryDownload = transferManager.downloadDirectory(downloadDirectoryRequest)
+
+        // Wait for completion
+        CompletedDirectoryDownload completedDirectoryDownload = directoryDownload.completionFuture().join()
+
+        // Check for failed transfers with detailed error information
+        if (!completedDirectoryDownload.failedTransfers().isEmpty()) {
+            log.error("Failed to download ${completedDirectoryDownload.failedTransfers().size()} files from S3")
+
+            List<String> failureDetails = []
+            completedDirectoryDownload.failedTransfers().each { FailedFileDownload failedDownload ->
+                String failureMessage = "Failed: ${failedDownload.request().getObjectRequest().key()} - ${failedDownload.exception().getMessage()}"
+                log.error(failureMessage)
+                failureDetails.add(failureMessage)
+            }
+
+            throw new RuntimeException("Directory download completed with ${completedDirectoryDownload.failedTransfers().size()} failures. Details: ${failureDetails.join('; ')}")
+        }
 
         File downloadDirectory = new File(OdinUtil.joinPath(tempDirPath, key))
         File finalDestinationDirectory = new File(OdinUtil.joinPath(workingDirectory, relativeDestination == null ? "" : relativeDestination))
@@ -45,7 +104,49 @@ class S3FileOperations implements FileOperations {
 
     private void downloadFile(String bucket, String key, String relativeDestination, String workingDirectory) {
         File downloadFile = new File(OdinUtil.joinPath(workingDirectory, relativeDestination == null ? key.split("/").last() : relativeDestination))
-        Download s3Object = transferManager.download(bucket, key, downloadFile)
-        s3Object.waitForCompletion()
+
+        // Build the download file request using Groovy closure syntax
+        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
+                .getObjectRequest { req ->
+                    req.bucket(bucket)
+                            .key(key)
+                }
+                .destination(downloadFile.toPath())
+                .build()
+
+        // Execute the file download
+        FileDownload fileDownload = transferManager.downloadFile(downloadFileRequest)
+
+        // Wait for completion
+        CompletedFileDownload completedFileDownload = fileDownload.completionFuture().join()
+
+        log.debug("Downloaded file from S3: ${completedFileDownload.response().responseMetadata()}")
+    }
+
+    /**
+     * Closes the transfer manager and S3 client to release resources.
+     * This method is thread-safe and idempotent.
+     */
+    synchronized void close() {
+        if (closed) {
+            log.debug("S3FileOperations already closed")
+            return
+        }
+
+        try {
+            log.debug("Closing S3TransferManager")
+            transferManager.close()
+        } catch (Exception e) {
+            log.warn("Error closing TransferManager", e)
+        } finally {
+            try {
+                // S3AsyncClient must be closed separately as per AWS SDK documentation
+                log.debug("Closing S3AsyncClient")
+                s3AsyncClient.close()
+            } catch (Exception e) {
+                log.warn("Error closing S3AsyncClient", e)
+            }
+            closed = true
+        }
     }
 }
