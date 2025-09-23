@@ -1,14 +1,16 @@
 package com.dream11.storage
 
 import com.dream11.OdinUtil
+import com.dream11.S3Utils
 import com.dream11.spec.FileDownloadSpec
-import com.dream11.state.S3Utils
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration
 import software.amazon.awssdk.core.retry.RetryMode
+import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.S3Uri
+import software.amazon.awssdk.services.s3.S3Utilities
 import software.amazon.awssdk.transfer.s3.S3TransferManager
 import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryDownload
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload
@@ -26,8 +28,9 @@ class S3FileOperations implements FileOperations {
     private final S3AsyncClient s3AsyncClient
     private final S3TransferManager transferManager
     private volatile boolean closed = false
+    private final S3Utilities s3Utilities
 
-    S3FileOperations() {
+    S3FileOperations(String region) {
         // Configure retry strategy with standard mode (3 retries by default)
         ClientOverrideConfiguration overrideConfig = ClientOverrideConfiguration.builder()
                 .retryStrategy(RetryMode.STANDARD)
@@ -37,12 +40,16 @@ class S3FileOperations implements FileOperations {
         // Even though we use blocking operations (.join()), Transfer Manager needs async client
         this.s3AsyncClient = S3AsyncClient.builder()
                 .overrideConfiguration(overrideConfig)
+                .region(Region.of(region))
                 .build()
 
         this.transferManager = S3TransferManager.builder()
                 .s3Client(s3AsyncClient)
                 .build()
 
+        this.s3Utilities = S3Utilities.builder()
+                .region(Region.of(region))
+                .build()
         // Register shutdown hook to ensure resources are cleaned up
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             log.debug("Shutting down S3FileOperations resources")
@@ -52,7 +59,7 @@ class S3FileOperations implements FileOperations {
 
     @Override
     void download(FileDownloadSpec fileDownloadSpec, String workingDirectory) {
-        S3Uri s3Uri = S3Utils.parseAndValidateS3Uri(fileDownloadSpec.getUri())
+        S3Uri s3Uri = S3Utils.parseAndValidateS3Uri(fileDownloadSpec.getUri(), this.s3Utilities)
         String bucket = s3Uri.bucket().get()
         String key = s3Uri.key().get()
 

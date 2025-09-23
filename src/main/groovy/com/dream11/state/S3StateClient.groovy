@@ -1,6 +1,6 @@
 package com.dream11.state
 
-
+import com.dream11.S3Utils
 import groovy.util.logging.Slf4j
 import software.amazon.awssdk.core.ResponseBytes
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration
@@ -10,6 +10,7 @@ import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.S3ClientBuilder
 import software.amazon.awssdk.services.s3.S3Uri
+import software.amazon.awssdk.services.s3.S3Utilities
 import software.amazon.awssdk.services.s3.model.GetObjectResponse
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException
@@ -17,8 +18,9 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException
 @Slf4j
 class S3StateClient implements StateClient {
 
-    S3StateClientConfig stateConfig
-    S3Client s3Client
+    private final S3StateClientConfig stateConfig
+    private final S3Client s3Client
+    private final S3Utilities s3Utilities
 
     S3StateClient(StateClientConfig stateConfig) {
         this.stateConfig = (S3StateClientConfig) stateConfig
@@ -41,13 +43,16 @@ class S3StateClient implements StateClient {
         }
 
         this.s3Client = clientBuilder.build()
+        this.s3Utilities = S3Utilities.builder()
+                .region(Region.of(this.stateConfig.getRegion()))
+                .build()
         // Log complete config for debugging
         log.debug("S3StateClient initialized with config: ${this.stateConfig}, retry strategy: STANDARD")
     }
 
     @Override
     String getState() {
-        S3Uri s3Uri = S3Utils.parseAndValidateS3Uri(stateConfig.getUri())
+        S3Uri s3Uri = S3Utils.parseAndValidateS3Uri(stateConfig.getUri(), this.s3Utilities)
         String bucket = s3Uri.bucket().get()
         String key = s3Uri.key().get()
 
@@ -75,7 +80,7 @@ class S3StateClient implements StateClient {
 
     @Override
     void putState(String workingDirectory) {
-        S3Uri s3Uri = S3Utils.parseAndValidateS3Uri(stateConfig.getUri())
+        S3Uri s3Uri = S3Utils.parseAndValidateS3Uri(stateConfig.getUri(), this.s3Utilities)
         String bucket = s3Uri.bucket().get()
         String key = s3Uri.key().get()
 
@@ -96,7 +101,7 @@ class S3StateClient implements StateClient {
 
     @Override
     void deleteState() {
-        S3Uri s3Uri = S3Utils.parseAndValidateS3Uri(stateConfig.getUri())
+        S3Uri s3Uri = S3Utils.parseAndValidateS3Uri(stateConfig.getUri(), this.s3Utilities)
         String bucket = s3Uri.bucket().get()
         String key = s3Uri.key().get()
 

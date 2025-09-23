@@ -1,0 +1,18 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="component-undeploy" type="GroovyScriptRunConfiguration" factoryName="Groovy">
+    <module name="odin-component-interface" />
+    <setting name="path" value="file://$PROJECT_DIR$/src/test/groovy/nginx/component.groovy" />
+    <setting name="vmparams" value="" />
+    <setting name="params" value="" />
+    <setting name="workDir" value="file://$PROJECT_DIR$/src/test/groovy/nginx" />
+    <setting name="debug" value="false" />
+    <env name="AWS_PROFILE" value="stage" />
+    <env name="BASE_CONFIG" value="{&quot;name&quot;:&quot;web&quot;,&quot;internal_port&quot;:80}" />
+    <env name="DSL_METADATA" value="{&quot;flavour&quot;:&quot;local_docker&quot;,&quot;stage&quot;:&quot;undeploy&quot;,&quot;stateConfig&quot;:{&quot;provider&quot;:&quot;S3&quot;,&quot;config&quot;:{&quot;uri&quot;:&quot;s3://odin-components-state-stag/odin-component-interface-nginx-test.tfstate&quot;,&quot;endpoint&quot;:&quot;https://s3.us-east-1.amazonaws.com&quot;,&quot;region&quot;:&quot;us-east-1&quot;}}}" />
+    <env name="FLAVOUR_CONFIG" value="{&quot;external_port&quot;:80}" />
+    <env name="OPERATION_CONFIG" value="{&quot;count&quot;:1}" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

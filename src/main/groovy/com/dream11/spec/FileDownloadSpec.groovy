@@ -14,9 +14,15 @@ class FileDownloadSpec extends BaseCommand {
     String uri
     String relativeDestination
     CredentialsSpec credentials
+    // default region is us-east-1
+    String region = "us-east-1"
 
     FileDownloadSpec(FlavourSpec flavour) {
         super(flavour)
+    }
+
+    void region(String region) {
+        this.region = region
     }
 
     void provider(String provider) {

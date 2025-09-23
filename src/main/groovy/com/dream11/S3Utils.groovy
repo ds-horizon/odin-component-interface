@@ -1,4 +1,4 @@
-package com.dream11.state
+package com.dream11
 
 import software.amazon.awssdk.services.s3.S3Uri
 import software.amazon.awssdk.services.s3.S3Utilities
@@ -8,9 +8,7 @@ import software.amazon.awssdk.services.s3.S3Utilities
  */
 class S3Utils {
 
-    private static final S3Utilities s3Utilities = S3Utilities.builder().build()
-
-    static S3Uri parseAndValidateS3Uri(String uri) {
+    static S3Uri parseAndValidateS3Uri(String uri, S3Utilities s3Utilities) {
         if (uri == null || uri.isEmpty()) {
             throw new IllegalArgumentException("S3 URI cannot be null or empty")
         }

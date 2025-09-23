@@ -13,7 +13,7 @@ class FileCommandExecutor {
         FileOperations fileOperations
         switch (StorageProvider.valueOf(fileDownloadSpec.getProvider())) {
             case StorageProvider.S3:
-                fileOperations = new S3FileOperations()
+                fileOperations = new S3FileOperations(fileDownloadSpec.getRegion())
                 break
             default:
                 throw new IllegalArgumentException("Unsupported provider ${fileDownloadSpec.getProvider()}")
