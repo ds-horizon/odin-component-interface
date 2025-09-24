@@ -1,8 +1,12 @@
 package com.dream11.spec
 
 import com.dream11.ExecutionContext
+import com.dream11.OdinUtil
 import com.dream11.exec.CommandResponse
 import com.dream11.exec.FileCommandExecutor
+import com.dream11.storage.StorageConfigValidator
+import com.dream11.storage.StorageValidatorFactory
+import com.fasterxml.jackson.databind.JsonNode
 import groovy.util.logging.Slf4j
 
 import static com.dream11.OdinUtil.mustExistProperty
@@ -14,15 +18,14 @@ class FileDownloadSpec extends BaseCommand {
     String uri
     String relativeDestination
     CredentialsSpec credentials
-    // default region is us-east-1
-    String region = "us-east-1"
+    JsonNode attributesJson
 
     FileDownloadSpec(FlavourSpec flavour) {
         super(flavour)
     }
 
-    void region(String region) {
-        this.region = region
+    void attributes(Map<String, Object> attrs) {
+        this.attributesJson = OdinUtil.getObjectMapper().valueToTree(attrs)
     }
 
     void provider(String provider) {
@@ -57,5 +60,19 @@ class FileDownloadSpec extends BaseCommand {
         if (this.credentials != null) {
             this.credentials.validate(context)
         }
+
+        // Always validate and apply defaults for storage providers
+        StorageConfigValidator validator = StorageValidatorFactory.getValidator(provider)
+
+        // If no attributes provided, create empty JsonNode
+        if (this.attributesJson == null) {
+            this.attributesJson = OdinUtil.getObjectMapper().createObjectNode()
+        }
+
+        // Apply defaults before validation
+        this.attributesJson = validator.applyDefaults(attributesJson)
+
+        // Now validate with defaults applied
+        validator.validate(attributesJson)
     }
 }

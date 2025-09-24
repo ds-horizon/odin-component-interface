@@ -1,14 +1,16 @@
-package com.dream11.storage
+package com.dream11.storage.s3
 
 import com.dream11.OdinUtil
 import com.dream11.S3Util
 import com.dream11.spec.FileDownloadSpec
+import com.dream11.storage.FileOperations
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration
 import software.amazon.awssdk.core.retry.RetryMode
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
+import software.amazon.awssdk.services.s3.S3AsyncClientBuilder
 import software.amazon.awssdk.services.s3.S3Uri
 import software.amazon.awssdk.services.s3.S3Utilities
 import software.amazon.awssdk.transfer.s3.S3TransferManager
@@ -28,26 +30,35 @@ class S3FileOperations implements FileOperations {
     private volatile boolean closed = false
     private final S3Utilities s3Utilities
 
-    S3FileOperations(String region) {
+    S3FileOperations(S3StorageConfig config) {
+        log.debug("Initializing S3FileOperations with config: ${config}")
+
         // Configure retry strategy with standard mode (3 retries by default)
         ClientOverrideConfiguration overrideConfig = ClientOverrideConfiguration.builder()
                 .retryStrategy(RetryMode.STANDARD)
                 .build()
 
-        // Initialize with S3 async client with retry configuration
-        // Even though we use blocking operations (.join()), Transfer Manager needs async client
-        this.s3AsyncClient = S3AsyncClient.builder()
+        // Build S3 client with all configuration options
+        S3AsyncClientBuilder clientBuilder = S3AsyncClient.builder()
                 .overrideConfiguration(overrideConfig)
-                .region(Region.of(region))
-                .build()
+                .region(Region.of(config.region))
+                .forcePathStyle(config.forcePathStyle)
+
+        // Add custom endpoint if provided
+        if (config.endpoint != null && !config.endpoint.isEmpty()) {
+            clientBuilder.endpointOverride(URI.create(config.endpoint))
+        }
+
+        this.s3AsyncClient = clientBuilder.build()
 
         this.transferManager = S3TransferManager.builder()
                 .s3Client(s3AsyncClient)
                 .build()
 
         this.s3Utilities = S3Utilities.builder()
-                .region(Region.of(region))
+                .region(Region.of(config.region))
                 .build()
+
         // Register shutdown hook to ensure resources are cleaned up
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             log.debug("Shutting down S3FileOperations resources")

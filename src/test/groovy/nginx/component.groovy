@@ -77,6 +77,9 @@ Odin.component {
                 provider "S3"
                 uri "s3://playgroundv2-generated-templates/banner/banner/application/"
                 relativeDestination "templates"
+                attributes([
+                        region: "us-east-1"
+                ])
             }
             download {
                 provider "S3"
