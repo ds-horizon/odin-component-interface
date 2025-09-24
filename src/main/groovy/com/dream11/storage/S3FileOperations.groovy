@@ -1,7 +1,7 @@
 package com.dream11.storage
 
 import com.dream11.OdinUtil
-import com.dream11.S3Utils
+import com.dream11.S3Util
 import com.dream11.spec.FileDownloadSpec
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
@@ -59,11 +59,11 @@ class S3FileOperations implements FileOperations {
 
     @Override
     void download(FileDownloadSpec fileDownloadSpec, String workingDirectory) {
-        S3Uri s3Uri = S3Utils.parseAndValidateS3Uri(fileDownloadSpec.getUri(), this.s3Utilities)
+        S3Uri s3Uri = S3Util.parseAndValidateS3Uri(fileDownloadSpec.getUri(), this.s3Utilities)
         String bucket = s3Uri.bucket().get()
         String key = s3Uri.key().get()
 
-        if (S3Utils.isDirectory(s3Uri)) {
+        if (S3Util.isDirectory(s3Uri)) {
             log.debug("Given S3 uri [${fileDownloadSpec.getUri()}] is a directory")
             downloadDirectory(bucket, key, fileDownloadSpec.getRelativeDestination(), workingDirectory)
         } else {

@@ -1,6 +1,6 @@
 package com.dream11.state
 
-import com.dream11.S3Utils
+import com.dream11.S3Util
 import groovy.util.logging.Slf4j
 import software.amazon.awssdk.core.ResponseBytes
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration
@@ -52,11 +52,11 @@ class S3StateClient implements StateClient {
 
     @Override
     String getState() {
-        S3Uri s3Uri = S3Utils.parseAndValidateS3Uri(stateConfig.getUri(), this.s3Utilities)
+        S3Uri s3Uri = S3Util.parseAndValidateS3Uri(stateConfig.getUri(), this.s3Utilities)
         String bucket = s3Uri.bucket().get()
         String key = s3Uri.key().get()
 
-        if (S3Utils.isDirectory(s3Uri)) {
+        if (S3Util.isDirectory(s3Uri)) {
             log.error("Given S3 uri [${stateConfig.getUri()}] is a directory")
             throw new IllegalArgumentException("Given S3 uri [${stateConfig.getUri()}] is a directory")
         } else {
@@ -80,7 +80,7 @@ class S3StateClient implements StateClient {
 
     @Override
     void putState(String workingDirectory) {
-        S3Uri s3Uri = S3Utils.parseAndValidateS3Uri(stateConfig.getUri(), this.s3Utilities)
+        S3Uri s3Uri = S3Util.parseAndValidateS3Uri(stateConfig.getUri(), this.s3Utilities)
         String bucket = s3Uri.bucket().get()
         String key = s3Uri.key().get()
 
@@ -101,7 +101,7 @@ class S3StateClient implements StateClient {
 
     @Override
     void deleteState() {
-        S3Uri s3Uri = S3Utils.parseAndValidateS3Uri(stateConfig.getUri(), this.s3Utilities)
+        S3Uri s3Uri = S3Util.parseAndValidateS3Uri(stateConfig.getUri(), this.s3Utilities)
         String bucket = s3Uri.bucket().get()
         String key = s3Uri.key().get()
 
