@@ -14,10 +14,8 @@ import software.amazon.awssdk.services.s3.S3Utilities
 import software.amazon.awssdk.transfer.s3.S3TransferManager
 import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryDownload
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload
-import software.amazon.awssdk.transfer.s3.model.DirectoryDownload
 import software.amazon.awssdk.transfer.s3.model.DownloadDirectoryRequest
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest
-import software.amazon.awssdk.transfer.s3.model.FailedFileDownload
 import software.amazon.awssdk.transfer.s3.model.FileDownload
 
 import java.nio.file.Paths
@@ -82,19 +80,18 @@ class S3FileOperations implements FileOperations {
                 .listObjectsV2RequestTransformer(request -> request.prefix(key))
                 .build()
 
-        DirectoryDownload directoryDownload = transferManager.downloadDirectory(downloadDirectoryRequest)
-        CompletedDirectoryDownload completedDirectoryDownload = directoryDownload.completionFuture().join()
+        CompletedDirectoryDownload completedDirectoryDownload = transferManager.downloadDirectory(downloadDirectoryRequest)
+                .completionFuture()
+                .join()
 
         // Check for failed transfers with detailed error information
         if (!completedDirectoryDownload.failedTransfers().isEmpty()) {
             log.error("Failed to download ${completedDirectoryDownload.failedTransfers().size()} files from S3")
-
-            List<String> failureDetails = []
-            completedDirectoryDownload.failedTransfers().each { FailedFileDownload failedDownload ->
-                String failureMessage = "Failed: ${failedDownload.request().getObjectRequest().key()} - ${failedDownload.exception().getMessage()}"
-                log.error(failureMessage)
-                failureDetails.add(failureMessage)
-            }
+            List<String> failureDetails = completedDirectoryDownload.failedTransfers()
+                    .stream()
+                    .map(failedDownload -> "Failed: ${failedDownload.request().getObjectRequest().key()} - ${failedDownload.exception().getMessage()}")
+                    .peek(log::error)
+                    .toList()
 
             throw new IOException("Directory download completed with ${completedDirectoryDownload.failedTransfers().size()} failures. Details: ${failureDetails.join('; ')}")
         }

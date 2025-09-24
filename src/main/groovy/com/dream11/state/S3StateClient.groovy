@@ -88,7 +88,7 @@ class S3StateClient implements StateClient {
         try {
             s3Client.headBucket(request -> request.bucket(bucket))
         } catch (NoSuchBucketException ignored) {
-            s3Client.createBucket(request -> request.bucket(bucket))
+            throw new RuntimeException("${bucket} bucket doesn't exist. State file can not be persisted.")
         }
 
         // Read the content from a local file in the working directory
