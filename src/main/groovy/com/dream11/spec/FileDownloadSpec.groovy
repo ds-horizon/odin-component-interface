@@ -51,8 +51,8 @@ class FileDownloadSpec extends BaseCommand {
 
     @Override
     void validate(ExecutionContext context) {
-        mustExistProperty(() -> provider == null, "download block in ${getFlavour().getFlavour()} flavour", "provider")
-        mustExistProperty(() -> uri == null, "download block in ${getFlavour().getFlavour()} flavour", "uri")
+        mustExistProperty(() -> provider == null || provider.isEmpty(), "download block in ${getFlavour().getFlavour()} flavour", "provider")
+        mustExistProperty(() -> uri == null || uri.isEmpty(), "download block in ${getFlavour().getFlavour()} flavour", "uri")
 
         if (this.credentials != null) {
             this.credentials.validate(context)

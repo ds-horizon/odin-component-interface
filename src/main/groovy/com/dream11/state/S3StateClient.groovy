@@ -105,7 +105,7 @@ class S3StateClient implements StateClient {
         String bucket = s3Uri.bucket().get()
         String key = s3Uri.key().get()
 
-        // if the bucket exists, simply return since there is no need to delete
+        // if the bucket does not exists, simply return since there is no need to delete
         try {
             s3Client.headBucket(request -> request.bucket(bucket))
         } catch (NoSuchBucketException ignored) {

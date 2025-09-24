@@ -96,7 +96,7 @@ class S3FileOperations implements FileOperations {
                 failureDetails.add(failureMessage)
             }
 
-            throw new RuntimeException("Directory download completed with ${completedDirectoryDownload.failedTransfers().size()} failures. Details: ${failureDetails.join('; ')}")
+            throw new IOException("Directory download completed with ${completedDirectoryDownload.failedTransfers().size()} failures. Details: ${failureDetails.join('; ')}")
         }
 
         File downloadDirectory = new File(OdinUtil.joinPath(tempDirPath, key))
