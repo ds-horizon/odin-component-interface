@@ -1,5 +1,6 @@
 package com.dream11.state
 
+import com.amazonaws.client.builder.AwsClientBuilder
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.AmazonS3URI
@@ -7,14 +8,28 @@ import com.amazonaws.services.s3.model.S3Object
 import groovy.util.logging.Slf4j
 
 @Slf4j
-class S3Client implements StateClient{
+class S3StateClient implements StateClient {
 
-    StateConfig stateConfig
+    S3StateClientConfig stateConfig
     AmazonS3 s3Client
 
-    S3Client(StateConfig stateConfig) {
-        this.s3Client = AmazonS3Client.builder().build()
-        this.stateConfig = stateConfig
+    S3StateClient(StateClientConfig stateConfig) {
+        this.stateConfig = (S3StateClientConfig) stateConfig
+
+        def clientBuilder = AmazonS3Client.builder()
+
+        if (this.stateConfig.getEndpoint() != null && !this.stateConfig.getEndpoint().isEmpty()) {
+            // Use custom endpoint if provided
+            clientBuilder.withEndpointConfiguration(
+                new AwsClientBuilder.EndpointConfiguration(this.stateConfig.getEndpoint(), this.stateConfig.getRegion()))
+        } else {
+            // Use default AWS S3 endpoint for the region
+            clientBuilder.withRegion(this.stateConfig.getRegion())
+        }
+
+        this.s3Client = clientBuilder.build()
+        // Log complete config for debugging
+        log.debug("S3StateClient initialized with config: ${this.stateConfig}")
     }
 
     @Override

@@ -82,21 +82,21 @@ class StageSequenceExecutor {
         LockConfig lockConfig = context.getMetadata().getLockConfig()
         FlavourStage stage = context.getMetadata().stage
         if (shouldAcquireLock(stage, stages, lockStage, lockConfig)) {
-            log.debug("Acquiring lock for : ${lockConfig.provider()}")
+            log.debug("Acquiring lock for : ${lockConfig.getProvider()}")
             LockClient lockClient = context.getMetadata().getOrCreateLockClient()
             try {
                 if (!lockClient.acquireStateLock()) {
-                    throw new RuntimeException("Failed to acquire lock for : ${lockConfig.provider()}")
+                    throw new RuntimeException("Failed to acquire lock for : ${lockConfig.getProvider()}")
                 }
                 List <CommandResponse> allResponses = getResponses(stages, context)
                 //only release the lock if you acquired it
                 if (!lockClient.releaseStateLock()) {
-                    throw new RuntimeException("Failed to release lock for : ${lockConfig.provider()}")
+                    throw new RuntimeException("Failed to release lock for : ${lockConfig.getProvider()}")
                 }
                 return allResponses
             } catch (Exception e) {
                 if (!lockClient.releaseStateLock()) {
-                    throw new RuntimeException("Failed to release lock for : ${lockConfig.provider()}")
+                    throw new RuntimeException("Failed to release lock for : ${lockConfig.getProvider()}")
                 }
                 throw e
             }
@@ -109,7 +109,7 @@ class StageSequenceExecutor {
         return  isLockMandatory(stage, stages) &&
                 lockStage &&
                 lockConfig != null &&
-                lockConfig.provider() != null
+                lockConfig.getProvider() != null
     }
 
      boolean isLockMandatory(FlavourStage stage, LinkedHashMap<String, Spec> stages) {

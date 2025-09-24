@@ -1,30 +1,30 @@
 package com.dream11.state
 
-import com.fasterxml.jackson.annotation.JsonProperty
+
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 
 class StateConfig {
     String provider
-    String uri
-    Credentials credentials
 
-    StateConfig(@JsonProperty("provider") String provider,
-                @JsonProperty("uri") String uri,
-                @JsonProperty("credentials") Credentials credentials) {
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "provider")
+    @JsonSubTypes([@JsonSubTypes.Type(value = S3StateClientConfig.class, name = "S3")])
+    StateClientConfig config
+
+    StateConfig() {
+        // Default constructor for Jackson
+    }
+
+    StateConfig(String provider, StateClientConfig config) {
         this.provider = provider
-        this.uri = uri
-        this.credentials = credentials
+        this.config = config
     }
 
     String getProvider() {
         return provider
     }
 
-    String getUri() {
-        return uri
+    StateClientConfig getConfig() {
+        return config
     }
-
-    Credentials getCredentials() {
-        return credentials
-    }
-
 }

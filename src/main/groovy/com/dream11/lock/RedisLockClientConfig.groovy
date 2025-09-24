@@ -1,26 +1,23 @@
 package com.dream11.lock
 
-
 class RedisLockClientConfig implements LockClientConfig {
-    private String key;
-    private String clusterEndpoint;
+    String key
+    String host
+    Integer port = 6379
 
-    RedisLockClientConfig(String key, String clusterEndpoint) {
-        this.key = key;
-        this.clusterEndpoint = clusterEndpoint;
+    RedisLockClientConfig() {
+        // Default constructor for Jackson
     }
 
     String getKey() {
-        return key;
+        return key
     }
 
-    String getClusterEndpoint() {
-        return clusterEndpoint;
+    String getHost() {
+        return host
     }
 
-    static RedisLockClientConfig fromConfigMap(Map<String, Object> config) {
-        String key = (String) config.get("key");
-        String clusterEndpoint = (String) config.get("clusterEndpoint");
-        return new RedisLockClientConfig(key, clusterEndpoint);
+    Integer getPort() {
+        return port
     }
 }
