@@ -15,9 +15,9 @@ fi
 # Navigate to project root
 cd ../../../../../ || exit 1
 
-export BASE_CONFIG='{"name":"web","internal_port":80}'
-export DSL_METADATA='{"flavour":"local_docker","stage":"preDeploy","stateConfig":{"provider":"S3","config":{"uri":"s3://odin-components-state-stag/odin-component-interface-nginx-test.tfstate","endpoint":"https://s3.us-east-1.amazonaws.com","region":"us-east-1"}}}'
-export FLAVOUR_CONFIG='{"external_port":8765}'
+export ODIN_BASE_CONFIG='{"name":"web","internal_port":80}'
+export ODIN_DSL_METADATA='{"flavour":"local_docker","stage":"preDeploy","stateConfig":{"provider":"S3","config":{"uri":"s3://odin-components-state-stag/odin-component-interface-nginx-test.tfstate","endpoint":"https://s3.us-east-1.amazonaws.com","region":"us-east-1"}}}'
+export ODIN_FLAVOUR_CONFIG='{"external_port":8765}'
 
 # Navigate to component directory
 cd src/test/groovy/nginx || exit 1
