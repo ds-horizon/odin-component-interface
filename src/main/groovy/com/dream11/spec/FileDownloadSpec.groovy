@@ -1,8 +1,12 @@
 package com.dream11.spec
 
 import com.dream11.ExecutionContext
+import com.dream11.OdinUtil
 import com.dream11.exec.CommandResponse
 import com.dream11.exec.FileCommandExecutor
+import com.dream11.storage.StorageConfig
+import com.dream11.storage.StorageConfigParser
+import com.dream11.validation.BeanValidator
 import groovy.util.logging.Slf4j
 
 import static com.dream11.OdinUtil.mustExistProperty
@@ -14,9 +18,14 @@ class FileDownloadSpec extends BaseCommand {
     String uri
     String relativeDestination
     CredentialsSpec credentials
+    StorageConfig storageConfig
 
     FileDownloadSpec(FlavourSpec flavour) {
         super(flavour)
+    }
+
+    void attributes(Map<String, Object> attrs) {
+        this.storageConfig = StorageConfigParser.parse(provider, OdinUtil.getObjectMapper().valueToTree(attrs))
     }
 
     void provider(String provider) {
@@ -45,8 +54,12 @@ class FileDownloadSpec extends BaseCommand {
 
     @Override
     void validate(ExecutionContext context) {
-        mustExistProperty(() -> provider == null, "download block in ${getFlavour().getFlavour()} flavour", "provider")
-        mustExistProperty(() -> uri == null, "download block in ${getFlavour().getFlavour()} flavour", "uri")
+        mustExistProperty(() -> provider == null || provider.isEmpty(), "download block in ${getFlavour().getFlavour()} flavour", "provider")
+        mustExistProperty(() -> uri == null || uri.isEmpty(), "download block in ${getFlavour().getFlavour()} flavour", "uri")
+
+        if (this.storageConfig != null) {
+            BeanValidator.validate(this.storageConfig, "${provider}StorageConfig")
+        }
 
         if (this.credentials != null) {
             this.credentials.validate(context)

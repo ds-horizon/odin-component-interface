@@ -1,9 +1,11 @@
 package com.dream11.exec
 
+
 import com.dream11.spec.FileDownloadSpec
 import com.dream11.storage.FileOperations
-import com.dream11.storage.S3FileOperations
 import com.dream11.storage.StorageProvider
+import com.dream11.storage.s3.S3FileOperations
+import com.dream11.storage.s3.S3StorageConfig
 import groovy.util.logging.Slf4j
 
 @Slf4j
@@ -13,7 +15,8 @@ class FileCommandExecutor {
         FileOperations fileOperations
         switch (StorageProvider.valueOf(fileDownloadSpec.getProvider())) {
             case StorageProvider.S3:
-                fileOperations = new S3FileOperations()
+                S3StorageConfig s3Config = (S3StorageConfig) fileDownloadSpec.storageConfig
+                fileOperations = new S3FileOperations(s3Config)
                 break
             default:
                 throw new IllegalArgumentException("Unsupported provider ${fileDownloadSpec.getProvider()}")

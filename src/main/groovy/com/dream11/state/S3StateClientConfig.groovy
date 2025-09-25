@@ -7,6 +7,7 @@ class S3StateClientConfig implements StateClientConfig {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     String endpoint
     String region
+    boolean forcePathStyle
 
     S3StateClientConfig() {
         // Default constructor for Jackson
@@ -24,7 +25,11 @@ class S3StateClientConfig implements StateClientConfig {
         return region
     }
 
+    boolean getForcePathStyle() {
+        return forcePathStyle
+    }
+
     String toString() {
-        return "S3StateClientConfig(uri: ${uri}, endpoint: ${endpoint}, region: ${region})"
+        return "S3StateClientConfig(uri: ${uri}, endpoint: ${endpoint}, region: ${region}, forcePathStyle: ${forcePathStyle})"
     }
 }

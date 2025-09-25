@@ -1,98 +1,120 @@
 package com.dream11.state
 
-import com.amazonaws.client.builder.AwsClientBuilder
-import com.amazonaws.services.s3.AmazonS3
-import com.amazonaws.services.s3.AmazonS3Client
-import com.amazonaws.services.s3.AmazonS3URI
-import com.amazonaws.services.s3.model.S3Object
+import com.dream11.S3Util
 import groovy.util.logging.Slf4j
+import software.amazon.awssdk.core.ResponseBytes
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration
+import software.amazon.awssdk.core.retry.RetryMode
+import software.amazon.awssdk.core.sync.RequestBody
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.S3ClientBuilder
+import software.amazon.awssdk.services.s3.S3Uri
+import software.amazon.awssdk.services.s3.S3Utilities
+import software.amazon.awssdk.services.s3.model.GetObjectResponse
+import software.amazon.awssdk.services.s3.model.NoSuchBucketException
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException
 
 @Slf4j
 class S3StateClient implements StateClient {
 
-    S3StateClientConfig stateConfig
-    AmazonS3 s3Client
+    private final S3StateClientConfig stateConfig
+    private final S3Client s3Client
+    private final S3Utilities s3Utilities
 
     S3StateClient(StateClientConfig stateConfig) {
         this.stateConfig = (S3StateClientConfig) stateConfig
 
-        def clientBuilder = AmazonS3Client.builder()
+        // Configure retry strategy with standard mode (3 retries by default)
+        ClientOverrideConfiguration overrideConfig = ClientOverrideConfiguration.builder()
+                .retryStrategy(RetryMode.STANDARD)
+                .build()
+
+        S3ClientBuilder clientBuilder = S3Client.builder()
+                .forcePathStyle(this.stateConfig.getForcePathStyle())
+                .overrideConfiguration(overrideConfig)
 
         if (this.stateConfig.getEndpoint() != null && !this.stateConfig.getEndpoint().isEmpty()) {
             // Use custom endpoint if provided
-            clientBuilder.withEndpointConfiguration(
-                new AwsClientBuilder.EndpointConfiguration(this.stateConfig.getEndpoint(), this.stateConfig.getRegion()))
+            clientBuilder.endpointOverride(URI.create(this.stateConfig.getEndpoint()))
+                    .region(Region.of(this.stateConfig.getRegion()))
         } else {
             // Use default AWS S3 endpoint for the region
-            clientBuilder.withRegion(this.stateConfig.getRegion())
+            clientBuilder.region(Region.of(this.stateConfig.getRegion()))
         }
 
         this.s3Client = clientBuilder.build()
+        this.s3Utilities = S3Utilities.builder()
+                .region(Region.of(this.stateConfig.getRegion()))
+                .build()
         // Log complete config for debugging
-        log.debug("S3StateClient initialized with config: ${this.stateConfig}")
+        log.debug("S3StateClient initialized with config: ${this.stateConfig}, retry strategy: STANDARD")
     }
 
     @Override
     String getState() {
-        AmazonS3URI s3Uri = new AmazonS3URI(stateConfig.getUri())
-        String bucket = s3Uri.getBucket()
-        String key = s3Uri.getKey()
+        S3Uri s3Uri = S3Util.parseAndValidateS3Uri(stateConfig.getUri(), this.s3Utilities)
+        String bucket = s3Uri.bucket().get()
+        String key = s3Uri.key().get()
 
-        if (key.endsWith("/")) {
+        if (S3Util.isDirectory(s3Uri)) {
             log.error("Given S3 uri [${stateConfig.getUri()}] is a directory")
             throw new IllegalArgumentException("Given S3 uri [${stateConfig.getUri()}] is a directory")
         } else {
             log.debug("Given S3 uri [${stateConfig.getUri()}] is a file")
-            // Download the object using Amazon S3's built-in strong consistency
 
-            if(s3Client.doesObjectExist(bucket, key)) {
-                S3Object s3Object = s3Client.getObject(bucket, key)
-                InputStream objectContent = s3Object.getObjectContent()
-                def fileContents = objectContent.text // Read content into a string
+            try {
+                // Check if object exists using HeadObject
+                s3Client.headObject(request -> request.bucket(bucket).key(key))
 
-                // Close the S3 object to release resources
-                s3Object.close()
-                return fileContents
-            } else {
+                // Object exists, download it
+                ResponseBytes<GetObjectResponse> response = s3Client.getObjectAsBytes(request ->
+                        request.bucket(bucket).key(key)
+                )
+                return response.asUtf8String()
+            } catch (NoSuchKeyException ignored) {
                 log.debug("Object does not exist: ${stateConfig.getUri()}")
                 return ""
             }
         }
     }
 
-
     @Override
     void putState(String workingDirectory) {
-        AmazonS3URI s3Uri = new AmazonS3URI(stateConfig.getUri())
-        String bucket = s3Uri.getBucket()
-        String key = s3Uri.getKey()
+        S3Uri s3Uri = S3Util.parseAndValidateS3Uri(stateConfig.getUri(), this.s3Utilities)
+        String bucket = s3Uri.bucket().get()
+        String key = s3Uri.key().get()
 
-        // Check if the bucket exists; if not, create it
-        if (!s3Client.doesBucketExistV2(bucket)) {
-            s3Client.createBucket(bucket)
+        // Create bucket on the fly it it doesn't exist
+        try {
+            s3Client.headBucket(request -> request.bucket(bucket))
+        } catch (NoSuchBucketException ignored) {
+            throw new RuntimeException("${bucket} bucket doesn't exist. State file can not be persisted.")
         }
 
         // Read the content from a local file in the working directory
         File localFile = new File(workingDirectory, "odin.state")
 
-        // Upload the state file to S3, synchronous operation and consistency guarantee
+        // Upload the state file to S3
         // ensures that the state file is either fully uploaded or not uploaded at all
-        s3Client.putObject(bucket, key, localFile)
+        s3Client.putObject(request -> request.bucket(bucket).key(key), RequestBody.fromFile(localFile))
     }
 
     @Override
-    void deleteState(){
-        AmazonS3URI s3Uri = new AmazonS3URI(stateConfig.getUri())
-        String bucket = s3Uri.getBucket()
-        String key = s3Uri.getKey()
+    void deleteState() {
+        S3Uri s3Uri = S3Util.parseAndValidateS3Uri(stateConfig.getUri(), this.s3Utilities)
+        String bucket = s3Uri.bucket().get()
+        String key = s3Uri.key().get()
 
-        // Check if the bucket exists; if not, throw an exception
-        if (!s3Client.doesBucketExistV2(bucket)) {
+        // if the bucket does not exists, simply return since there is no need to delete
+        try {
+            s3Client.headBucket(request -> request.bucket(bucket))
+        } catch (NoSuchBucketException ignored) {
             log.error("Unable to delete state. Bucket does not exist: ${bucket}")
             return
         }
 
-        // Delete the state file to S3,
-        s3Client.deleteObject(bucket, key)
+        // Delete the state file from S3
+        s3Client.deleteObject(request -> request.bucket(bucket).key(key))
     }
 }
