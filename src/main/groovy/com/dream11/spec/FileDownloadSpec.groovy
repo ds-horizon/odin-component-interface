@@ -4,9 +4,9 @@ import com.dream11.ExecutionContext
 import com.dream11.OdinUtil
 import com.dream11.exec.CommandResponse
 import com.dream11.exec.FileCommandExecutor
-import com.dream11.storage.StorageConfigValidator
-import com.dream11.storage.StorageValidatorFactory
-import com.fasterxml.jackson.databind.JsonNode
+import com.dream11.storage.StorageConfig
+import com.dream11.storage.StorageConfigParser
+import com.dream11.validation.BeanValidator
 import groovy.util.logging.Slf4j
 
 import static com.dream11.OdinUtil.mustExistProperty
@@ -18,14 +18,14 @@ class FileDownloadSpec extends BaseCommand {
     String uri
     String relativeDestination
     CredentialsSpec credentials
-    JsonNode attributesJson
+    StorageConfig storageConfig
 
     FileDownloadSpec(FlavourSpec flavour) {
         super(flavour)
     }
 
     void attributes(Map<String, Object> attrs) {
-        this.attributesJson = OdinUtil.getObjectMapper().valueToTree(attrs)
+        this.storageConfig = StorageConfigParser.parse(provider, OdinUtil.getObjectMapper().valueToTree(attrs))
     }
 
     void provider(String provider) {
@@ -57,22 +57,12 @@ class FileDownloadSpec extends BaseCommand {
         mustExistProperty(() -> provider == null || provider.isEmpty(), "download block in ${getFlavour().getFlavour()} flavour", "provider")
         mustExistProperty(() -> uri == null || uri.isEmpty(), "download block in ${getFlavour().getFlavour()} flavour", "uri")
 
+        if (this.storageConfig != null) {
+            BeanValidator.validate(this.storageConfig, "${provider}StorageConfig")
+        }
+
         if (this.credentials != null) {
             this.credentials.validate(context)
         }
-
-        // Always validate and apply defaults for storage providers
-        StorageConfigValidator validator = StorageValidatorFactory.getValidator(provider)
-
-        // If no attributes provided, create empty JsonNode
-        if (this.attributesJson == null) {
-            this.attributesJson = OdinUtil.getObjectMapper().createObjectNode()
-        }
-
-        // Apply defaults before validation
-        this.attributesJson = validator.applyDefaults(attributesJson)
-
-        // Now validate with defaults applied
-        validator.validate(attributesJson)
     }
 }

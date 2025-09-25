@@ -26,6 +26,8 @@
         <jedis.version>4.4.3</jedis.version>
         <lombok.version>1.18.42</lombok.version>
         <codenarc.version>3.6.0</codenarc.version>
+        <hibernate-validator.version>8.0.3.Final</hibernate-validator.version>
+        <expressly.version>5.0.0</expressly.version>
 
         <!-- Maven plugins       -->
         <gmavenplus-plugin.version>4.2.1</gmavenplus-plugin.version>
@@ -47,6 +49,18 @@
     </dependencyManagement>
 
     <dependencies>
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>${hibernate-validator.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.glassfish.expressly</groupId>
+            <artifactId>expressly</artifactId>
+            <version>${expressly.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
