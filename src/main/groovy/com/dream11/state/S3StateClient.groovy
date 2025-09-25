@@ -31,6 +31,7 @@ class S3StateClient implements StateClient {
                 .build()
 
         S3ClientBuilder clientBuilder = S3Client.builder()
+                .forcePathStyle(this.stateConfig.getForcePathStyle())
                 .overrideConfiguration(overrideConfig)
 
         if (this.stateConfig.getEndpoint() != null && !this.stateConfig.getEndpoint().isEmpty()) {

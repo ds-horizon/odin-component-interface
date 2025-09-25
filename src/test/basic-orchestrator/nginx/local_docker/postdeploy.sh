@@ -5,18 +5,19 @@ set -euo pipefail
 # Purpose: Execute post-deployment tasks for nginx component
 # Required: AWS_PROFILE environment variable, groovy
 
-# Check if AWS profile is set
-if [ -z "${AWS_PROFILE}" ]; then
-    echo "Error: AWS_PROFILE environment variable is not set" >&2
-    echo "Please set AWS_PROFILE before running this script" >&2
-    exit 1
-fi
+# Source common environment configuration
+# shellcheck source=/dev/null
+source ./common-env.sh
 
 # Navigate to project root
 cd ../../../../../ || exit 1
 
 export ODIN_BASE_CONFIG='{"name":"web","internal_port":80}'
-export ODIN_DSL_METADATA='{"flavour":"local_docker","stage":"postDeploy","stateConfig":{"provider":"S3","config":{"uri":"s3://odin-components-state-stag/odin-component-interface-nginx-test.tfstate","endpoint":"https://s3.us-east-1.amazonaws.com","region":"us-east-1"}}}'
+if [ "${TEST_MODE}" = "local" ]; then
+    export ODIN_DSL_METADATA='{"flavour":"local_docker","stage":"postDeploy","stateConfig":{"provider":"S3","config":{"uri":"s3://'"${S3_BUCKET}"'/odin-component-interface-nginx-test.tfstate","endpoint":"'"${S3_ENDPOINT}"'","region":"us-east-1","forcePathStyle":true}}}'
+else
+    export ODIN_DSL_METADATA='{"flavour":"local_docker","stage":"postDeploy","stateConfig":{"provider":"S3","config":{"uri":"s3://'"${S3_BUCKET}"'/odin-component-interface-nginx-test.tfstate","endpoint":"'"${S3_ENDPOINT}"'","region":"us-east-1","forcePathStyle":false}}}'
+fi
 export ODIN_FLAVOUR_CONFIG='{"external_port":8765}'
 
 # Navigate to component directory
