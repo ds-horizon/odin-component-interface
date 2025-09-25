@@ -18,11 +18,6 @@ class StorageValidatorFactory {
             throw new IllegalArgumentException("Unsupported storage provider: ${provider}")
         }
 
-        StorageConfigValidator validator = validators[storageProvider]
-        if (!validator) {
-            throw new IllegalArgumentException("No validator configured for provider: ${provider}")
-        }
-
-        return validator
+        return validators.computeIfAbsent(storageProvider, key -> {throw new IllegalArgumentException("No validator configured for provider: ${provider}")})
     }
 }
