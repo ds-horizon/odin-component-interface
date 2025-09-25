@@ -42,7 +42,10 @@ import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE
 import static java.util.stream.Collectors.toSet
 
 @Slf4j
-class OdinUtil {
+final class OdinUtil {
+
+    private OdinUtil() {
+    }
 
     private static final ObjectMapper MAPPER = JsonMapper.builder()
             .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)

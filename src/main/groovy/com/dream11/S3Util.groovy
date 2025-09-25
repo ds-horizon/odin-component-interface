@@ -6,7 +6,10 @@ import software.amazon.awssdk.services.s3.S3Utilities
 /**
  * Utility class for S3 operations
  */
-class S3Util {
+final class S3Util {
+
+    private S3Util() {
+    }
 
     static S3Uri parseAndValidateS3Uri(String uri, S3Utilities s3Utilities) {
         if (uri == null || uri.isEmpty()) {
