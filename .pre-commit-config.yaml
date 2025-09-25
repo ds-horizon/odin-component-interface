@@ -25,3 +25,13 @@ repos:
     rev: v8.25.1
     hooks:
       - id: gitleaks
+
+  - repo: local
+    hooks:
+      - id: spotless-check
+        name: Spotless Format Check
+        entry: mvn spotless:check
+        language: system
+        pass_filenames: false
+        files: \.(java|groovy)$
+        description: Check Java and Groovy code formatting with Spotless
