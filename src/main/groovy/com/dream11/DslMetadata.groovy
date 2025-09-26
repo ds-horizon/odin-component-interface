@@ -5,6 +5,7 @@ import com.dream11.lock.LockClientFactory
 import com.dream11.lock.LockConfig
 import com.dream11.spec.FlavourStage
 import com.dream11.state.StateConfig
+import com.dream11.validation.BeanValidator
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
 import static com.dream11.Constants.HEALTHCHECK_CONNECTION_TIMEOUT
@@ -126,6 +127,10 @@ class DslMetadata {
                 mustExistProperty(() -> config.get(Constants.OPERATION_NAME) == null, "DslMetadata", String.format("config.%s",
                         Constants.OPERATION_NAME))
             }
+        }
+
+        if (lockConfig != null) {
+            BeanValidator.validate(lockConfig, lockConfig.class.getName())
         }
     }
 
