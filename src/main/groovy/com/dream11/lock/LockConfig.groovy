@@ -12,10 +12,10 @@ class LockConfig {
     private String provider
 
 
-    @NotNull
+    @NotNull(message = "LockClientConfig of LockConfig can not be null")
+    @Valid
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "provider")
     @JsonSubTypes([@JsonSubTypes.Type(value = RedisLockClientConfig.class, name = "redis")])
-    @Valid
     LockClientConfig config
 
     String getProvider() {

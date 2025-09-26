@@ -117,6 +117,7 @@ class DslMetadata {
     void validate() {
         mustExistProperty(() -> flavour == null, "DslMetadata", "flavour")
         mustExistProperty(() -> stage == null, "DslMetadata", "stage")
+        mustExistProperty(() -> stateConfig == null, "DslMetadata", "stateConfig")
 
         if (isOperating()) {
             mustExistProperty(() -> config.get(Constants.OPERATION_NAME) == null, "DslMetadata", String.format("config.%s", Constants.OPERATION_NAME))
@@ -129,6 +130,7 @@ class DslMetadata {
             }
         }
 
+        BeanValidator.validate(stateConfig, stateConfig.class.getName())
         if (lockConfig != null) {
             BeanValidator.validate(lockConfig, lockConfig.class.getName())
         }
