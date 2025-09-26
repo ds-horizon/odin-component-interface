@@ -90,9 +90,9 @@ class HealthCheckSpec extends EnclosedByFlavour implements Spec {
 
     private static boolean hasError(List<CommandResponse> responses) {
         return responses.stream()
-        .filter {commandResponse -> commandResponse.hasError()}
-        .findFirst()
-        .isPresent()
+                .filter { commandResponse -> commandResponse.hasError() }
+                .findFirst()
+                .isPresent()
     }
 
     private List<CommandResponse> executeWithRetry(Supplier<List<CommandResponse>> commandToBeExecuted) {

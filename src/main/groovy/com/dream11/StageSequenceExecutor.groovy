@@ -3,27 +3,24 @@ package com.dream11
 import com.dream11.exec.CommandResponse
 import com.dream11.lock.LockClient
 import com.dream11.lock.LockConfig
-import com.dream11.spec.FlavourStage
-import com.dream11.spec.PreDeploySpec
-import com.dream11.spec.DeploySpec
-import com.dream11.spec.PostDeploySpec
-import com.dream11.spec.HealthCheckSpec
-import com.dream11.spec.UnDeploySpec
 import com.dream11.spec.CaughtSpec
+import com.dream11.spec.DeploySpec
 import com.dream11.spec.FinalisedSpec
+import com.dream11.spec.FlavourStage
+import com.dream11.spec.HealthCheckSpec
 import com.dream11.spec.OperateSpec
+import com.dream11.spec.PostDeploySpec
+import com.dream11.spec.PreDeploySpec
 import com.dream11.spec.Spec
+import com.dream11.spec.UnDeploySpec
 import groovy.util.logging.Slf4j
 
-
-import static com.dream11.Constants.STAGE_PRE_DEPLOY
 import static com.dream11.Constants.STAGE_DEPLOY
-import static com.dream11.Constants.STAGE_POST_DEPLOY
 import static com.dream11.Constants.STAGE_HEALTHCHECK
-import static com.dream11.Constants.STAGE_UNDEPLOY
 import static com.dream11.Constants.STAGE_OPERATE
-
-
+import static com.dream11.Constants.STAGE_POST_DEPLOY
+import static com.dream11.Constants.STAGE_PRE_DEPLOY
+import static com.dream11.Constants.STAGE_UNDEPLOY
 import static com.dream11.OdinUtil.isSuccessfulExecution
 
 /**
@@ -69,6 +66,7 @@ class StageSequenceExecutor {
         stages.put(STAGE_HEALTHCHECK, healthCheck)
         return executeStages(stages, context)
     }
+
     private boolean doesStageRequireStateLock(LinkedHashMap<String, Spec> stages) {
         Spec stageSpec = stages.get(STAGE_OPERATE)
         if (stageSpec instanceof OperateSpec) {
@@ -88,7 +86,7 @@ class StageSequenceExecutor {
                 if (!lockClient.acquireStateLock()) {
                     throw new RuntimeException("Failed to acquire lock for : ${lockConfig.getProvider()}")
                 }
-                List <CommandResponse> allResponses = getResponses(stages, context)
+                List<CommandResponse> allResponses = getResponses(stages, context)
                 //only release the lock if you acquired it
                 if (!lockClient.releaseStateLock()) {
                     throw new RuntimeException("Failed to release lock for : ${lockConfig.getProvider()}")
@@ -105,19 +103,20 @@ class StageSequenceExecutor {
             return getResponses(stages, context)
         }
     }
+
     private boolean shouldAcquireLock(FlavourStage stage, LinkedHashMap<String, Spec> stages, boolean lockStage, LockConfig lockConfig) {
-        return  isLockMandatory(stage, stages) &&
+        return isLockMandatory(stage, stages) &&
                 lockStage &&
                 lockConfig != null &&
                 lockConfig.getProvider() != null
     }
 
-     boolean isLockMandatory(FlavourStage stage, LinkedHashMap<String, Spec> stages) {
+    boolean isLockMandatory(FlavourStage stage, LinkedHashMap<String, Spec> stages) {
         return stage in [FlavourStage.PRE_DEPLOY, FlavourStage.DEPLOY, FlavourStage.POST_DEPLOY, FlavourStage.UNDEPLOY]
                 || (stage == FlavourStage.OPERATE && doesStageRequireStateLock(stages))
     }
 
-    private List<CommandResponse> getResponses(LinkedHashMap<String, Spec> stages,  ExecutionContext context){
+    private List<CommandResponse> getResponses(LinkedHashMap<String, Spec> stages, ExecutionContext context) {
         List<CommandResponse> allResponses = new ArrayList<>()
         for (Map.Entry<String, Spec> entry : stages.entrySet()) {
             def stage = entry.getKey()
@@ -194,7 +193,7 @@ class StageSequenceExecutor {
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Unknown operation ${context.getMetadata().getConfig().get(Constants.OPERATION_NAME)} for flavour ${context.getMetadata().getFlavour()}"))
         stages.put(STAGE_OPERATE, operation)
-        if(operation.performHealthcheck()) {
+        if (operation.performHealthcheck()) {
             log.debug("Healthcheck will be performed after operation.")
             stages.put(STAGE_HEALTHCHECK, healthCheck)
         }

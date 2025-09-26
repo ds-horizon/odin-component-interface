@@ -7,8 +7,6 @@ Odin.component {
 
     flavour {
         name "local_docker"
-        // optional, if not provided Odin's default runner will be used
-        runnerImage "dream11/nginx-runner"
 
         preDeploy {
             run "echo 'baseConfigWithDefaults : ${getBaseConfigWithDefaults()}'"

@@ -7,10 +7,10 @@ import static com.dream11.OdinUtil.mustExistProperty
 
 @Slf4j
 class LinearRetryPolicy implements RetryPolicy {
-    Integer counter
-    Integer intervalSeconds
+    private Integer counter
+    private Integer intervalSeconds
 
-    int currentCount
+    private int currentCount
 
     void count(Integer count) {
         this.counter = count

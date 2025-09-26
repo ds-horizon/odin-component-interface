@@ -5,6 +5,7 @@ import com.dream11.lock.LockClientFactory
 import com.dream11.lock.LockConfig
 import com.dream11.spec.FlavourStage
 import com.dream11.state.StateConfig
+import com.dream11.validation.BeanValidator
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
 import static com.dream11.Constants.HEALTHCHECK_CONNECTION_TIMEOUT
@@ -102,7 +103,7 @@ class DslMetadata {
     }
 
     private LockClient initialiseLockClient() {
-        if(lockConfig == null){
+        if (lockConfig == null) {
             throw new RuntimeException("LockConfig is not set")
         }
         this.lockClient = LockClientFactory.getLockClient(lockConfig)
@@ -116,16 +117,22 @@ class DslMetadata {
     void validate() {
         mustExistProperty(() -> flavour == null, "DslMetadata", "flavour")
         mustExistProperty(() -> stage == null, "DslMetadata", "stage")
+        mustExistProperty(() -> stateConfig == null, "DslMetadata", "stateConfig")
 
         if (isOperating()) {
             mustExistProperty(() -> config.get(Constants.OPERATION_NAME) == null, "DslMetadata", String.format("config.%s", Constants.OPERATION_NAME))
         }
         if (isValidating()) {
             mustExistProperty(() -> config.get(Constants.STAGE_NAME) == null, "DslMetadata", String.format("config.%s", Constants.STAGE_NAME))
-            if(config.get(Constants.STAGE_NAME) == Constants.STAGE_OPERATE){
+            if (config.get(Constants.STAGE_NAME) == Constants.STAGE_OPERATE) {
                 mustExistProperty(() -> config.get(Constants.OPERATION_NAME) == null, "DslMetadata", String.format("config.%s",
-                    Constants.OPERATION_NAME))
+                        Constants.OPERATION_NAME))
             }
+        }
+
+        BeanValidator.validate(stateConfig, stateConfig.class.getName())
+        if (lockConfig != null) {
+            BeanValidator.validate(lockConfig, lockConfig.class.getName())
         }
     }
 
@@ -148,7 +155,7 @@ class DslMetadata {
     }
 
     LockClient getOrCreateLockClient() {
-        if(lockClient == null){
+        if (lockClient == null) {
             return initialiseLockClient()
         }
         return lockClient

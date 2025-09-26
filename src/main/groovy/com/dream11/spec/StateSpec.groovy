@@ -38,7 +38,7 @@ class StateSpec {
         return checkLastState()
     }
 
-    private boolean checkLastState(){
+    private boolean checkLastState() {
         return this.lastState != null && !this.lastState.isEmpty()
     }
 }

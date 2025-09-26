@@ -42,6 +42,7 @@ class OperateSpec extends EnclosedByFlavour implements Spec {
     void disableLocking(Boolean stateLock) {
         this.disableLocking = stateLock
     }
+
     boolean disableLocking() {
         return disableLocking
     }

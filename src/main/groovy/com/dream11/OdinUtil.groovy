@@ -176,12 +176,12 @@ final class OdinUtil {
             markedRespBuilder.append(commandResponse.getStdErr())
             markedRespBuilder.append(endMarker)
             markedCommandResponse = new CommandResponse(commandResponse.getCommand(), commandResponse.getStdOut(),
-                markedRespBuilder.toString(), commandResponse.getExportable(), 1)
+                    markedRespBuilder.toString(), commandResponse.getExportable(), 1)
         } else {
             markedRespBuilder.append(commandResponse.getStdOut())
             markedRespBuilder.append(endMarker)
             markedCommandResponse = new CommandResponse(commandResponse.getCommand(), markedRespBuilder.toString(),
-                commandResponse.getStdErr(), commandResponse.getExportable(), 0)
+                    commandResponse.getStdErr(), commandResponse.getExportable(), 0)
         }
         return markedCommandResponse
     }
