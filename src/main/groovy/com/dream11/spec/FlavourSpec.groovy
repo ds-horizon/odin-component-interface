@@ -69,7 +69,6 @@ class FlavourSpec implements Spec {
     private final List<OperateSpec> operations = new ArrayList<>()
 
     private String relativeBaseDir
-    private String runnerImage
 
     FlavourSpec() {
         if (BootstrapConfig.getBaseConfig() == null) {
@@ -87,10 +86,6 @@ class FlavourSpec implements Spec {
         if (BootstrapConfig.getOperationConfig() != null) {
             operationConfig = BootstrapConfig.getOperationConfig()
         }
-    }
-
-    void runnerImage(String image) {
-        this.runnerImage = image
     }
 
     void name(String name) {
@@ -438,11 +433,6 @@ class FlavourSpec implements Spec {
 
     UnDeploySpec getUndeploy() {
         return undeploy
-    }
-
-    // required by deserializer
-    String getRunnerImage() {
-        return runnerImage
     }
 
     String getRelativeBaseDir() {
