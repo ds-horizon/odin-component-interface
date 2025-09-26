@@ -23,15 +23,15 @@ class EnclosedByFlavour extends StateSpec {
         return flavour.data(jsonPath)
     }
 
-    String getBaseConfigWithDefaults(){
+    String getBaseConfigWithDefaults() {
         return flavour.getBaseConfigWithDefaults()
     }
 
-    String getFlavourConfigWithDefaults(){
+    String getFlavourConfigWithDefaults() {
         return flavour.getFlavourConfigWithDefaults()
     }
 
-    String getOperationConfigWithDefaults(){
+    String getOperationConfigWithDefaults() {
         return flavour.getOperationConfigWithDefaults()
     }
 

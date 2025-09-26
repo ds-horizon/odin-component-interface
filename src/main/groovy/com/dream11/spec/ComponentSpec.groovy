@@ -59,7 +59,7 @@ class ComponentSpec implements Spec {
                     .findFirst()
                     .orElseThrow(() -> new RuntimeException("Unknown flavour ${context.getMetadata().getFlavour()}"))
         } catch (RuntimeException e) {
-            log.error("Exception while getting active flavour: ",e)
+            log.error("Exception while getting active flavour: ", e)
             throw e
         }
     }

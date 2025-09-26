@@ -6,7 +6,7 @@ import redis.clients.jedis.Jedis
 @Slf4j
 class RedisLockClient implements LockClient {
     private Jedis redisClient
-    RedisLockClientConfig redisLockClientConfig
+    private final RedisLockClientConfig redisLockClientConfig
     private final Object redisLock = new Object()
     private String LOCK_VALUE
 
@@ -43,19 +43,16 @@ class RedisLockClient implements LockClient {
 
     @Override
     boolean releaseStateLock() {
-        if(LOCK_VALUE == null) {
+        if (LOCK_VALUE == null) {
             log.debug("Lock value is null. Lock not acquired.")
             return true
-        }
-        else if (!getOrCreateRedisClient().exists(redisLockClientConfig.getKey())) {
+        } else if (!getOrCreateRedisClient().exists(redisLockClientConfig.getKey())) {
             log.debug("Lock for ${redisLockClientConfig.getKey()} doesn't exist.")
             return true
-        }
-        else if(LOCK_VALUE != getOrCreateRedisClient().get(redisLockClientConfig.getKey())) {
+        } else if (LOCK_VALUE != getOrCreateRedisClient().get(redisLockClientConfig.getKey())) {
             log.debug("Redis lock value doesn't match with local lock value: ${LOCK_VALUE}. Lock not acquired.")
             return false
-        }
-        else {
+        } else {
             log.debug("Lock value matches. Lock was acquired.")
 
             Long deletedKeysCount = getOrCreateRedisClient().del(redisLockClientConfig.getKey())

@@ -102,7 +102,7 @@ class DslMetadata {
     }
 
     private LockClient initialiseLockClient() {
-        if(lockConfig == null){
+        if (lockConfig == null) {
             throw new RuntimeException("LockConfig is not set")
         }
         this.lockClient = LockClientFactory.getLockClient(lockConfig)
@@ -122,9 +122,9 @@ class DslMetadata {
         }
         if (isValidating()) {
             mustExistProperty(() -> config.get(Constants.STAGE_NAME) == null, "DslMetadata", String.format("config.%s", Constants.STAGE_NAME))
-            if(config.get(Constants.STAGE_NAME) == Constants.STAGE_OPERATE){
+            if (config.get(Constants.STAGE_NAME) == Constants.STAGE_OPERATE) {
                 mustExistProperty(() -> config.get(Constants.OPERATION_NAME) == null, "DslMetadata", String.format("config.%s",
-                    Constants.OPERATION_NAME))
+                        Constants.OPERATION_NAME))
             }
         }
     }
@@ -148,7 +148,7 @@ class DslMetadata {
     }
 
     LockClient getOrCreateLockClient() {
-        if(lockClient == null){
+        if (lockClient == null) {
             return initialiseLockClient()
         }
         return lockClient

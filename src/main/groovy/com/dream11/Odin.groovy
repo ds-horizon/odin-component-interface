@@ -80,7 +80,8 @@ class Odin {
     static ExecutorService getExecutorService() {
         return executorService
     }
-    private static void handleShutdown(){
+
+    private static void handleShutdown() {
         long startTime = System.nanoTime()
         while (!executionFinished && System.nanoTime() <= startTime + Constants.GRACEFUL_SHUTDOWN_WAIT_TIMEOUT.toNanos()) {
             log.debug("Waiting for execution to finish")

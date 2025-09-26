@@ -7,8 +7,8 @@ import groovy.util.logging.Slf4j
 @Slf4j
 class CredentialsSpec extends EnclosedByFlavour implements Spec {
 
-    String username
-    String password
+    private String username
+    private String password
 
     CredentialsSpec(FlavourSpec flavour) {
         super(flavour)

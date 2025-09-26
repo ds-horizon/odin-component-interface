@@ -1,13 +1,9 @@
 package com.dream11.lock
 
 class RedisLockClientConfig implements LockClientConfig {
-    String key
-    String host
-    Integer port = 6379
-
-    RedisLockClientConfig() {
-        // Default constructor for Jackson
-    }
+    private String key
+    private String host
+    private Integer port = 6379
 
     String getKey() {
         return key

@@ -25,12 +25,12 @@ import static com.dream11.OdinUtil.getObjectMapper
 import static com.dream11.OdinUtil.getPostfixPermissions
 import static com.dream11.OdinUtil.getUsingJsonPath
 import static com.dream11.OdinUtil.isJsonFile
+import static com.dream11.OdinUtil.isValidatingOperation
 import static com.dream11.OdinUtil.joinPath
 import static com.dream11.OdinUtil.mergeJsons
 import static com.dream11.OdinUtil.mustExistProperty
 import static com.dream11.OdinUtil.readFile
 import static com.dream11.OdinUtil.validate
-import static com.dream11.OdinUtil.isValidatingOperation
 import static java.nio.charset.Charset.forName
 import static java.nio.file.Files.readString
 import static org.apache.commons.io.FileUtils.copyFile
@@ -387,20 +387,20 @@ class FlavourSpec implements Spec {
         return null
     }
 
-    String getBaseConfigWithDefaults(){
+    String getBaseConfigWithDefaults() {
         if (Odin.getExecutionContext().getMetadata().getFlavour() == flavour) {
             return getComponentDefaults(Odin.getExecutionContext()) != null
-                ? mergeJsons(List.of(baseConfig, getComponentDefaults(Odin.getExecutionContext())))
-                : String.copyValueOf(baseConfig.toCharArray())
+                    ? mergeJsons(List.of(baseConfig, getComponentDefaults(Odin.getExecutionContext())))
+                    : String.copyValueOf(baseConfig.toCharArray())
         }
         return "{}"
     }
 
-    String getFlavourConfigWithDefaults(){
+    String getFlavourConfigWithDefaults() {
         if (Odin.getExecutionContext().getMetadata().getFlavour() == flavour) {
             return getFlavourDefaults() != null
-                ? mergeJsons(List.of(flavourConfig, getFlavourDefaults()))
-                : String.copyValueOf(flavourConfig.toCharArray())
+                    ? mergeJsons(List.of(flavourConfig, getFlavourDefaults()))
+                    : String.copyValueOf(flavourConfig.toCharArray())
         }
         return "{}"
     }
@@ -408,8 +408,8 @@ class FlavourSpec implements Spec {
     String getOperationConfigWithDefaults() {
         if (Odin.getExecutionContext().getMetadata().getFlavour() == flavour && operationConfig != null) {
             return getOperationDefaults(Odin.getExecutionContext()) != null
-                ? mergeJsons(List.of(operationConfig, getOperationDefaults(Odin.getExecutionContext())))
-                : String.copyValueOf(operationConfig.toCharArray())
+                    ? mergeJsons(List.of(operationConfig, getOperationDefaults(Odin.getExecutionContext())))
+                    : String.copyValueOf(operationConfig.toCharArray())
         }
         return "{}"
     }

@@ -3,15 +3,13 @@ package com.dream11.state
 import com.fasterxml.jackson.annotation.JsonInclude
 
 class S3StateClientConfig implements StateClientConfig {
-    String uri
+    private String uri
+
     @JsonInclude(JsonInclude.Include.NON_NULL)
     String endpoint
-    String region
-    boolean forcePathStyle
 
-    S3StateClientConfig() {
-        // Default constructor for Jackson
-    }
+    private String region
+    boolean forcePathStyle
 
     String getUri() {
         return uri

@@ -14,11 +14,11 @@ import static com.dream11.OdinUtil.mustExistProperty
 @Slf4j
 class FileDownloadSpec extends BaseCommand {
 
-    String provider
-    String uri
-    String relativeDestination
-    CredentialsSpec credentials
-    StorageConfig storageConfig
+    private String provider
+    private String uri
+    private String relativeDestination
+    private CredentialsSpec credentials
+    private StorageConfig storageConfig
 
     FileDownloadSpec(FlavourSpec flavour) {
         super(flavour)
