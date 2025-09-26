@@ -13,13 +13,13 @@ class S3StateClientConfig implements StateClientConfig {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @URL(message = "S3 override endpoint must be a valid URI")
-    String endpoint
+    private String endpoint
 
     @NotNull(message = "S3 region is required")
     @Pattern(regexp = "^[a-z]{2}-[a-z]+-[0-9]\$", message = "S3 region must match AWS region format (e.g., us-east-1)")
     private String region = "us-east-1"
 
-    boolean forcePathStyle
+    private boolean forcePathStyle
 
     String getUri() {
         return uri

@@ -15,7 +15,7 @@ class StateConfig {
     @Valid
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "provider")
     @JsonSubTypes([@JsonSubTypes.Type(value = S3StateClientConfig.class, name = "S3")])
-    StateClientConfig config
+    private StateClientConfig config
 
     String getProvider() {
         return provider
