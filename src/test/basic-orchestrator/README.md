@@ -142,8 +142,8 @@ docker ps | grep odin-localstack
 docker logs odin-localstack
 
 # Restart LocalStack
-docker-compose down
-docker-compose up -d
+docker compose down
+docker compose up -d
 ```
 
 ### Permission Errors in AWS Mode
@@ -167,7 +167,7 @@ Ensure your AWS profile has permissions to:
 ### Local Mode
 ```bash
 # Stop and remove LocalStack container
-docker-compose down
+docker compose down
 
 # Remove LocalStack data volume
 docker volume rm basic-orchestrator_localstack-data
