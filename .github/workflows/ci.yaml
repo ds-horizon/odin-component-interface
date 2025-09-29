@@ -89,7 +89,7 @@ jobs:
         if: always()
         working-directory: src/test/basic-orchestrator
         run: |
-          docker-compose down -v || true
+          docker compose down -v || true
 
       - name: Upload CodeNarc Report
         if: always()
