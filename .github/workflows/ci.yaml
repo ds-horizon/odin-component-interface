@@ -43,6 +43,9 @@ jobs:
           sudo ln -sf /opt/groovy-4.0.27/bin/groovyc /usr/local/bin/groovyc
           groovy --version
 
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd #v3.1.2
+
       - name: Build project
         run: mvn clean package --no-transfer-progress
 
