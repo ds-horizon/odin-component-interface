@@ -46,13 +46,9 @@ jobs:
       - name: Install Terraform
         uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd #v3.1.2
 
-      - name: Build project
-        run: mvn clean package --no-transfer-progress
-
       - name: Setup LocalStack environment
         working-directory: src/test/basic-orchestrator
-        run: |
-          ./setup-env.sh local
+        run: ./setup-env.sh local
 
       - name: Run nginx deployment smoke test
         working-directory: src/test/basic-orchestrator/nginx/local_docker
@@ -91,8 +87,7 @@ jobs:
       - name: Cleanup LocalStack
         if: always()
         working-directory: src/test/basic-orchestrator
-        run: |
-          docker compose down -v || true
+        run: docker compose down -v || true
 
       - name: Upload CodeNarc Report
         if: always()
@@ -100,13 +95,4 @@ jobs:
         with:
           name: codenarc-report
           path: target/CodeNarc-Report.html
-          retention-days: 1
-
-      - name: Upload LocalStack logs on failure
-        if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 #v4.6.2
-        with:
-          name: localstack-logs
-          path: |
-            src/test/basic-orchestrator/docker-compose.yml
           retention-days: 1
