@@ -34,10 +34,65 @@ jobs:
       - name: Verify Build and Run Code Analysis
         run: mvn clean verify --no-transfer-progress
 
+      - name: Install Groovy 4.0.27
+        run: |
+          wget https://groovy.jfrog.io/artifactory/libs-release-local/org/apache/groovy/groovy-binary/4.0.27/groovy-binary-4.0.27.zip
+          unzip groovy-binary-4.0.27.zip
+          sudo mv groovy-4.0.27 /opt/
+          sudo ln -sf /opt/groovy-4.0.27/bin/groovy /usr/local/bin/groovy
+          sudo ln -sf /opt/groovy-4.0.27/bin/groovyc /usr/local/bin/groovyc
+          groovy --version
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd #v3.1.2
+
+      - name: Setup LocalStack environment
+        working-directory: src/test/basic-orchestrator
+        run: ./setup-env.sh local
+
+      - name: Run nginx deployment smoke test
+        working-directory: src/test/basic-orchestrator/nginx/local_docker
+        env:
+          ODIN_TEST_MODE: local
+          ODIN_S3_BUCKET: odin-components-state
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_DEFAULT_REGION: us-east-1
+        run: |
+          set -euo pipefail
+
+          echo "Running validate.sh..."
+          ./validate.sh || { echo "::error::validate.sh failed with exit code $?"; exit 1; }
+
+          echo "Running predeploy.sh..."
+          ./predeploy.sh || { echo "::error::predeploy.sh failed with exit code $?"; exit 1; }
+
+          echo "Running deploy.sh..."
+          ./deploy.sh || { echo "::error::deploy.sh failed with exit code $?"; exit 1; }
+
+          echo "Running postdeploy.sh..."
+          ./postdeploy.sh || { echo "::error::postdeploy.sh failed with exit code $?"; exit 1; }
+
+          echo "Running healthcheck.sh..."
+          ./healthcheck.sh || { echo "::error::healthcheck.sh failed with exit code $?"; exit 1; }
+
+          echo "Running operate.sh..."
+          ./operate.sh || { echo "::error::operate.sh failed with exit code $?"; exit 1; }
+
+          echo "Running undeploy.sh..."
+          ./undeploy.sh || { echo "::error::undeploy.sh failed with exit code $?"; exit 1; }
+
+          echo "Smoke tests completed successfully!"
+
+      - name: Cleanup LocalStack
+        if: always()
+        working-directory: src/test/basic-orchestrator
+        run: docker compose down -v || true
+
       - name: Upload CodeNarc Report
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 #v4.6.2
         with:
           name: codenarc-report
           path: target/CodeNarc-Report.html
-          retention-days: 7
+          retention-days: 1

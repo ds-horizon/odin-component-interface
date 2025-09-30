@@ -22,6 +22,7 @@ Odin.component {
             run "terraform init"
             run "terraform plan"
             run "terraform apply -auto-approve"
+            run "cat terraform.tfstate"
             out "cat terraform.tfstate"
 
             discovery {
