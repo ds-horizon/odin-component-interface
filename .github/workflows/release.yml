@@ -71,7 +71,7 @@ jobs:
           echo "VERSION=$releaseVersion" >> "$GITHUB_OUTPUT"
 
       - name: Update version pom.xml
-        run: mvn versions:set -DnewVersion=${{ steps.get_version.outputs.VERSION }}
+        run: mvn versions:set --no-transfer-progress -DnewVersion=${{ steps.get_version.outputs.VERSION }}
 
       - name: Build and Test
         run: mvn clean verify --no-transfer-progress
