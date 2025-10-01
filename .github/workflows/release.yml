@@ -76,7 +76,7 @@ jobs:
       - name: Build and Test
         run: |
           mvn clean verify --no-transfer-progress
-          if [ ! -f "./target/${{ env.ARTIFACT_NAME }}-${{ steps.get_version.outputs.VERSION }}-jar-with-dependencies.jar" ]; then
+          if [ ! -f "./target/${{ env.ARTIFACT_NAME }}.jar" ]; then
             echo "::error:: Expected JAR file not found!"
             exit 1
           fi
