@@ -81,10 +81,6 @@ jobs:
             exit 1
           fi
 
-      - name: Rename JAR artifact
-        run: cp "./target/${{ env.ARTIFACT_NAME }}-${{ steps.get_version.outputs.VERSION }}-jar-with-dependencies.jar" \
-             "./target/${{ env.ARTIFACT_NAME }}.jar"
-
       - name: Upload JAR to Release
         uses: softprops/action-gh-release@6cbd405e2c4e67a21c47fa9e383d020e4e28b836 #v2.3.3
         with:

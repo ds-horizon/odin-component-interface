@@ -25,7 +25,7 @@ export ODIN_OPERATION_CONFIG='{"count":1}'
 cd src/test/groovy/nginx || exit 1
 
 # Verify JAR exists
-JAR_PATTERN="../../../../target/odin-component-interface-*-SNAPSHOT-jar-with-dependencies.jar"
+JAR_PATTERN="../../../../target/odin-component-interface.jar"
 # shellcheck disable=SC2086
 if ! ls ${JAR_PATTERN} 1> /dev/null 2>&1; then
     echo "Error: JAR file not found matching pattern: ${JAR_PATTERN}" >&2
