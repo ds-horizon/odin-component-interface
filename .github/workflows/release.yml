@@ -12,6 +12,8 @@ env:
 jobs:
   publish-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Validate release branch
@@ -24,6 +26,7 @@ jobs:
 
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 #v5.0.0
         with:
+          token: ${{ secrets.GH_BOT_TOKEN }}
           fetch-depth: 0
 
       - name: Set up JDK 21
@@ -67,15 +70,6 @@ jobs:
           echo "Publishing version : ${releaseVersion}"
           echo "VERSION=$releaseVersion" >> $GITHUB_OUTPUT
 
-      - name: Check for existing artifacts
-        run: |
-          # Check if artifacts already exist for this release
-          if gh release view ${{ github.event.release.tag_name }} --json assets -q '.assets[].name' 2>/dev/null | grep -q "^${{ env.ARTIFACT_NAME }}.jar$"; then
-            echo "::error:: Release artifact already exists: ${{ env.ARTIFACT_NAME }}.jar"
-            echo "This indicates a possible duplicate release attempt"
-            exit 1
-          fi
-
       - name: Update version pom.xml
         run: mvn versions:set -DnewVersion=${{ steps.get_version.outputs.VERSION }}
 
@@ -87,32 +81,17 @@ jobs:
             exit 1
           fi
 
-      - name: Upload JAR to Release
-        id: upload_assets
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Rename the JAR to simple name before uploading
-          cp "./target/${{ env.ARTIFACT_NAME }}-${{ steps.get_version.outputs.VERSION }}-jar-with-dependencies.jar" \
+      - name: Rename JAR artifact
+        run: cp "./target/${{ env.ARTIFACT_NAME }}-${{ steps.get_version.outputs.VERSION }}-jar-with-dependencies.jar" \
              "./target/${{ env.ARTIFACT_NAME }}.jar"
 
-          # Upload with retry logic
-          for i in {1..3}; do
-            if gh release upload ${{ github.event.release.tag_name }} \
-              "./target/${{ env.ARTIFACT_NAME }}.jar" \
-              --clobber; then
-              echo "Upload successful"
-              echo "Asset uploaded as: ${{ env.ARTIFACT_NAME }}.jar"
-              break
-            else
-              echo "Upload attempt $i failed"
-              if [ $i -eq 3 ]; then
-                echo "Error: Failed to upload after 3 attempts"
-                exit 1
-              fi
-              sleep 5
-            fi
-          done
+      - name: Upload JAR to Release
+        uses: softprops/action-gh-release@6cbd405e2c4e67a21c47fa9e383d020e4e28b836 #v2.3.3
+        with:
+          token: ${{ secrets.GH_BOT_TOKEN }}
+          files: ./target/${{ env.ARTIFACT_NAME }}.jar
+          fail_on_unmatched_files: true
+          overwrite_files: false
 
       - name: Bump version
         env:
