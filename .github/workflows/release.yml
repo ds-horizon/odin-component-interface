@@ -68,7 +68,7 @@ jobs:
           fi
 
           echo "Publishing version : ${releaseVersion}"
-          echo "VERSION=$releaseVersion" >> $GITHUB_OUTPUT
+          echo "VERSION=$releaseVersion" >> "$GITHUB_OUTPUT"
 
       - name: Update version pom.xml
         run: mvn versions:set -DnewVersion=${{ steps.get_version.outputs.VERSION }}
