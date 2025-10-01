@@ -4,6 +4,9 @@ on:
     types:
       - synchronize
       - opened
+    paths:
+      - src/**
+      - pom.xml
     branches:
       - main
 
