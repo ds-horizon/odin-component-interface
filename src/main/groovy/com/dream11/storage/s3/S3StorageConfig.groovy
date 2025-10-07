@@ -1,10 +1,13 @@
 package com.dream11.storage.s3
 
+import com.dream11.AwsCredentialsProviderType
 import com.dream11.storage.StorageConfig
+import com.fasterxml.jackson.annotation.JsonInclude
 import groovy.transform.ToString
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Pattern
 import org.hibernate.validator.constraints.URL
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
 
 @ToString(includeNames = true)
 class S3StorageConfig implements StorageConfig {
@@ -17,6 +20,12 @@ class S3StorageConfig implements StorageConfig {
 
     private boolean forcePathStyle
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private AwsCredentialsProviderType credentialsProviderType
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String credentialsProfileName
+
     String getRegion() {
         return region
     }
@@ -27,5 +36,33 @@ class S3StorageConfig implements StorageConfig {
 
     boolean getForcePathStyle() {
         return forcePathStyle
+    }
+
+    AwsCredentialsProviderType getCredentialsProviderType() {
+        return credentialsProviderType
+    }
+
+    void setCredentialsProviderType(AwsCredentialsProviderType credentialsProviderType) {
+        this.credentialsProviderType = credentialsProviderType
+    }
+
+    String getCredentialsProfileName() {
+        return credentialsProfileName
+    }
+
+    void setCredentialsProfileName(String credentialsProfileName) {
+        this.credentialsProfileName = credentialsProfileName
+    }
+
+    /**
+     * Gets the AWS credentials provider.
+     * Creates a provider from the credentialsProviderType if set.
+     * If not set, returns null (SDK will use default provider chain).
+     */
+    AwsCredentialsProvider getCredentialsProvider() {
+        if (credentialsProviderType != null) {
+            return credentialsProviderType.createProvider(credentialsProfileName)
+        }
+        return null
     }
 }

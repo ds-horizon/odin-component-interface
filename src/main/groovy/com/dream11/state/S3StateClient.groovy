@@ -34,6 +34,11 @@ class S3StateClient implements StateClient {
                 .forcePathStyle(this.stateConfig.getForcePathStyle())
                 .overrideConfiguration(overrideConfig)
 
+        // Configure credentials provider if specified
+        if (this.stateConfig.getCredentialsProvider() != null) {
+            clientBuilder.credentialsProvider(this.stateConfig.getCredentialsProvider())
+        }
+
         if (this.stateConfig.getEndpoint() != null && !this.stateConfig.getEndpoint().isEmpty()) {
             // Use custom endpoint if provided
             clientBuilder.endpointOverride(URI.create(this.stateConfig.getEndpoint()))

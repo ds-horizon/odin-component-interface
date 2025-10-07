@@ -44,6 +44,11 @@ class S3FileOperations implements FileOperations {
                 .region(Region.of(config.region))
                 .forcePathStyle(config.forcePathStyle)
 
+        // Configure credentials provider if specified
+        if (config.credentialsProvider != null) {
+            clientBuilder.credentialsProvider(config.credentialsProvider)
+        }
+
         // Add custom endpoint if provided
         if (config.endpoint != null && !config.endpoint.isEmpty()) {
             clientBuilder.endpointOverride(URI.create(config.endpoint))
