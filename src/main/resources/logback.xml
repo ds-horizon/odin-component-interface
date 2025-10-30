@@ -17,6 +17,7 @@
     </appender>
     <logger name="com.networknt.schema" level="info"/>
     <logger name="software.amazon.awssdk" level="info"/>
+    <logger name="org.hibernate.validator" level="error"/>
     <root level="${LOG_LEVEL:-debug}">
         <appender-ref ref="STDOUT"/>
     </root>
