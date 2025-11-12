@@ -44,6 +44,6 @@ class S3StateClientConfig implements StateClientConfig {
     }
 
     String toString() {
-        return "S3StateClientConfig(uri: ${uri}, endpoint: ${endpoint}, region: ${region}, forcePathStyle: ${forcePathStyle})"
+        return "S3StateClientConfig(uri: ${uri}, endpoint: ${endpoint}, region: ${region}, forcePathStyle: ${forcePathStyle}, anonymousCredentials: ${anonymousCredentials})"
     }
 }
