@@ -49,6 +49,7 @@ final class OdinUtil {
 
     private static final ObjectMapper MAPPER = JsonMapper.builder()
             .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
             .withConfigOverride(ArrayNode.class, override -> override.setMergeable(false)) // prevent merging of values with type `ArrayNode`
             .build()

@@ -21,6 +21,8 @@ class S3StateClientConfig implements StateClientConfig {
 
     private boolean forcePathStyle
 
+    private boolean anonymousCredentials;
+
     String getUri() {
         return uri
     }
@@ -37,7 +39,11 @@ class S3StateClientConfig implements StateClientConfig {
         return forcePathStyle
     }
 
+    boolean getAnonymousCredentials() {
+        return anonymousCredentials
+    }
+
     String toString() {
-        return "S3StateClientConfig(uri: ${uri}, endpoint: ${endpoint}, region: ${region}, forcePathStyle: ${forcePathStyle})"
+        return "S3StateClientConfig(uri: ${uri}, endpoint: ${endpoint}, region: ${region}, forcePathStyle: ${forcePathStyle}, anonymousCredentials: ${anonymousCredentials})"
     }
 }
