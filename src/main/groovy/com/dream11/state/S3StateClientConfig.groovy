@@ -1,6 +1,8 @@
 package com.dream11.state
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import jakarta.validation.Valid
+import jakarta.validation.constraints.AssertTrue
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Pattern
@@ -21,23 +23,53 @@ class S3StateClientConfig implements StateClientConfig {
 
     private boolean forcePathStyle
 
+    private Credentials credentials
+
     String getUri() {
-        return uri
+        return this.uri
     }
 
     String getEndpoint() {
-        return endpoint
+        return this.endpoint
     }
 
     String getRegion() {
-        return region
+        return this.region
     }
 
     boolean getForcePathStyle() {
-        return forcePathStyle
+        return this.forcePathStyle
+    }
+
+    @Valid
+    Credentials getCredentials() {
+        return this.credentials
     }
 
     String toString() {
-        return "S3StateClientConfig(uri: ${uri}, endpoint: ${endpoint}, region: ${region}, forcePathStyle: ${forcePathStyle})"
+        return "S3StateClientConfig(uri: ${this.uri}, endpoint: ${this.endpoint}, region: ${this.region}, forcePathStyle: ${this.forcePathStyle}, credentials: ${this.credentials})"
+    }
+
+    static class Credentials {
+        private String awsAccessKeyId
+        private String awsSecretAccessKey
+
+        String getAwsAccessKeyId() {
+            return this.awsAccessKeyId
+        }
+
+        String getAwsSecretAccessKey() {
+            return this.awsSecretAccessKey
+        }
+
+        @AssertTrue(message = "Either both or none awsAccessKeyId awsSecretAccessKey must be set")
+        boolean isValidKeys() {
+            return (this.awsAccessKeyId == null && this.awsSecretAccessKey == null)
+                    || (this.awsAccessKeyId != null && this.awsSecretAccessKey != null);
+        }
+
+        String toString() {
+            return "Credentials(awsAccessKeyId: ${this.awsAccessKeyId}, awsSecretAccessKey: ${this.awsSecretAccessKey})"
+        }
     }
 }
