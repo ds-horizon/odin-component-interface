@@ -3,6 +3,9 @@ package com.dream11.state
 import com.dream11.S3Util
 import groovy.util.logging.Slf4j
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
+import software.amazon.awssdk.auth.credentials.AwsCredentials
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.core.ResponseBytes
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration
 import software.amazon.awssdk.core.retry.RetryMode
@@ -34,9 +37,9 @@ class S3StateClient implements StateClient {
         S3ClientBuilder clientBuilder = S3Client.builder()
                 .forcePathStyle(this.stateConfig.getForcePathStyle())
                 .overrideConfiguration(overrideConfig)
-
-        if (this.stateConfig.getAnonymousCredentials()) {
-            clientBuilder.credentialsProvider(AnonymousCredentialsProvider.create())
+        if (this.stateConfig.getCredentials() != null && this.stateConfig.getCredentials().getAwsSecretAccessKey() != null) {
+            log.info("Configuring S3 state client with static credentials")
+            clientBuilder.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(this.stateConfig.getCredentials().getAwsAccessKeyId(), this.stateConfig.getCredentials().getAwsSecretAccessKey())))
         }
 
         if (this.stateConfig.getEndpoint() != null && !this.stateConfig.getEndpoint().isEmpty()) {
