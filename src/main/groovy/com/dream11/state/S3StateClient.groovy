@@ -25,8 +25,24 @@ class S3StateClient implements StateClient {
     private final S3StateClientConfig stateConfig
     private final S3Client s3Client
     private final S3Utilities s3Utilities
+    private static volatile S3StateClient instance
 
-    S3StateClient(StateClientConfig stateConfig) {
+    static S3StateClient createNew(StateClientConfig config) {
+        return new S3StateClient(config)
+    }
+
+    static S3StateClient getInstance(StateClientConfig config) {
+        if (instance == null) {
+            synchronized (S3StateClient) {
+                if (instance == null) {
+                    instance = new S3StateClient(config)
+                }
+            }
+        }
+        return instance
+    }
+
+    private S3StateClient(StateClientConfig stateConfig) {
         this.stateConfig = (S3StateClientConfig) stateConfig
 
         // Configure retry strategy with standard mode (3 retries by default)
@@ -38,7 +54,7 @@ class S3StateClient implements StateClient {
                 .forcePathStyle(this.stateConfig.getForcePathStyle())
                 .overrideConfiguration(overrideConfig)
         if (this.stateConfig.getCredentials() != null && this.stateConfig.getCredentials().getAwsSecretAccessKey() != null) {
-            log.info("Configuring S3 state client with static credentials")
+            log.debug("Configuring S3 state client with static credentials")
             clientBuilder.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(this.stateConfig.getCredentials().getAwsAccessKeyId(), this.stateConfig.getCredentials().getAwsSecretAccessKey())))
         }
 
