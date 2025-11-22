@@ -27,6 +27,10 @@ class S3StateClient implements StateClient {
     private final S3Utilities s3Utilities
     private static volatile S3StateClient instance
 
+    static S3StateClient createNew(StateClientConfig config) {
+        return new S3StateClient(config)
+    }
+
     static S3StateClient getInstance(StateClientConfig config) {
         if (instance == null) {
             synchronized (S3StateClient) {
