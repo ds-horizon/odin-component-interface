@@ -25,8 +25,20 @@ class S3StateClient implements StateClient {
     private final S3StateClientConfig stateConfig
     private final S3Client s3Client
     private final S3Utilities s3Utilities
+    private static volatile S3StateClient instance
 
-    S3StateClient(StateClientConfig stateConfig) {
+    static S3StateClient getInstance(StateClientConfig config) {
+        if (instance == null) {
+            synchronized (S3StateClient) {
+                if (instance == null) {
+                    instance = new S3StateClient(config)
+                }
+            }
+        }
+        return instance
+    }
+
+    private S3StateClient(StateClientConfig stateConfig) {
         this.stateConfig = (S3StateClientConfig) stateConfig
 
         // Configure retry strategy with standard mode (3 retries by default)

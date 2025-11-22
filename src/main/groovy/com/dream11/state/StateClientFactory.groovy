@@ -5,7 +5,7 @@ class StateClientFactory {
         StateClientConfig clientConfig = stateConfig.getConfig()
         switch (StateProvider.valueOf(stateConfig.getProvider().toUpperCase())) {
             case StateProvider.S3:
-                return new S3StateClient(clientConfig)
+                return S3StateClient.getInstance(clientConfig)
             default:
                 throw new IllegalArgumentException("Unsupported provider ${stateConfig.getProvider()}")
         }
