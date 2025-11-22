@@ -50,7 +50,7 @@ class S3StateClient implements StateClient {
                 .forcePathStyle(this.stateConfig.getForcePathStyle())
                 .overrideConfiguration(overrideConfig)
         if (this.stateConfig.getCredentials() != null && this.stateConfig.getCredentials().getAwsSecretAccessKey() != null) {
-            log.info("Configuring S3 state client with static credentials")
+            log.debug("Configuring S3 state client with static credentials")
             clientBuilder.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(this.stateConfig.getCredentials().getAwsAccessKeyId(), this.stateConfig.getCredentials().getAwsSecretAccessKey())))
         }
 
